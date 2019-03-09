@@ -1,0 +1,25 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{buildReverseIndex}\PYG{p}{():}
+  \PYG{n}{CACHE\PYGZus{}PATH} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}revidx\PYGZus{}cache.npz\PYGZsq{}}
+  \PYG{c+c1}{\PYGZsh{} Si no existe ya}
+  \PYG{k}{if} \PYG{o+ow}{not} \PYG{n}{os}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{isfile}\PYG{p}{(}\PYG{n}{CACHE\PYGZus{}PATH}\PYG{p}{):}
+      \PYG{c+c1}{\PYGZsh{} Cargamos el vocabulario}
+      \PYG{n}{\PYGZus{}}\PYG{p}{,} \PYG{n}{\PYGZus{}}\PYG{p}{,} \PYG{n}{vocab} \PYG{o}{=} \PYG{n}{loadDictionary}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}kmeanscenters2000.pkl\PYGZdq{}}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos la lista de paths de imagenes}
+      \PYG{n}{imgl} \PYG{o}{=} \PYG{p}{[}\PYG{n}{os}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}imagenes\PYGZsq{}}\PYG{p}{,} \PYG{n}{x}\PYG{p}{)} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{os}\PYG{o}{.}\PYG{n}{listdir}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}imagenes\PYGZdq{}}\PYG{p}{)]}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos los descriptores para cada imagen}
+      \PYG{n}{imgds} \PYG{o}{=} \PYG{p}{[}\PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{(}\PYG{n}{getSIFT}\PYG{p}{(}\PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{is\PYGZus{}float}\PYG{o}{=}\PYG{n+nb+bp}{False}\PYG{p}{))[}\PYG{l+m+mi}{1}\PYG{p}{])} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{imgl}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Construimos el índice}
+      \PYG{n}{revidx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}\PYG{n}{countWords}\PYG{p}{(}\PYG{n}{ds}\PYG{p}{,} \PYG{n}{vocab}\PYG{p}{)} \PYG{k}{for} \PYG{n}{ds} \PYG{o+ow}{in} \PYG{n}{imgds}\PYG{p}{])}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{()}
+      \PYG{c+c1}{\PYGZsh{} Guardamos el índice}
+      \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{n}{CACHE\PYGZus{}PATH}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}w+b\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{outcache}\PYG{p}{:}
+          \PYG{n}{np}\PYG{o}{.}\PYG{n}{savez}\PYG{p}{(}\PYG{n}{outcache}\PYG{p}{,} \PYG{n}{vocab}\PYG{o}{=}\PYG{n}{vocab}\PYG{p}{,} \PYG{n}{imgl}\PYG{o}{=}\PYG{n}{imgl}\PYG{p}{,} \PYG{n}{revidx}\PYG{o}{=}\PYG{n}{revidx}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} Si ya existe lo recuperamos}
+  \PYG{k}{else}\PYG{p}{:}
+      \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{n}{CACHE\PYGZus{}PATH}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}r+b\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{incache}\PYG{p}{:}
+          \PYG{n}{npzfile} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{load}\PYG{p}{(}\PYG{n}{incache}\PYG{p}{)}
+          \PYG{n}{vocab} \PYG{o}{=} \PYG{n}{npzfile}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}vocab\PYGZsq{}}\PYG{p}{]}
+          \PYG{n}{imgl} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{npzfile}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}imgl\PYGZsq{}}\PYG{p}{])}
+          \PYG{n}{revidx} \PYG{o}{=} \PYG{n}{npzfile}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}revidx\PYGZsq{}}\PYG{p}{]}
+  \PYG{k}{return} \PYG{n}{vocab}\PYG{p}{,} \PYG{n}{imgl}\PYG{p}{,} \PYG{n}{revidx}
+\end{Verbatim}

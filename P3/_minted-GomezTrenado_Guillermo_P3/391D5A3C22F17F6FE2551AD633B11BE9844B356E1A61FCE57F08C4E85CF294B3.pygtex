@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{reduceSparse}\PYG{p}{(}\PYG{n}{m}\PYG{p}{):}
+  \PYG{k}{return} \PYG{p}{[}\PYG{n+nb}{dict}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{([}\PYG{n}{row} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{])[}\PYG{l+m+mi}{1}\PYG{p}{]),}\PYG{n}{row}\PYG{p}{[}\PYG{n}{row} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{]))} \PYG{k}{for} \PYG{n}{row} \PYG{o+ow}{in} \PYG{n}{m}\PYG{p}{]}
+\end{Verbatim}

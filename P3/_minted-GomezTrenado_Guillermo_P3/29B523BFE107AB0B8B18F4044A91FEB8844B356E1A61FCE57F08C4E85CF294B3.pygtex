@@ -1,0 +1,13 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{bonus1}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos el vocabulario}
+  \PYG{n}{vocab}\PYG{p}{,} \PYG{n}{imgl}\PYG{p}{,} \PYG{n}{revidx} \PYG{o}{=} \PYG{n}{buildReverseIndex}\PYG{p}{()}
+  \PYG{n}{wbgs} \PYG{o}{=} \PYG{n}{revidx}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{()}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos la ponderación}
+  \PYG{o}{...}
+  \PYG{c+c1}{\PYGZsh{} Seleccionamos y pintamos las 20 imágenes más parecidas}
+  \PYG{o}{...}
+  \PYG{c+c1}{\PYGZsh{} Realizamos la búsqueda con ventana deslizante}
+  \PYG{o}{...}
+\end{Verbatim}

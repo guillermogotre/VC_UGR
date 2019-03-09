@@ -1,0 +1,24 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{getPatch}\PYG{p}{(}\PYG{n}{im}\PYG{p}{,}\PYG{n}{x}\PYG{p}{,}\PYG{n}{y}\PYG{p}{,}\PYG{n}{d}\PYG{p}{,}\PYG{n}{a}\PYG{p}{,}\PYG{n}{psize}\PYG{o}{=}\PYG{l+m+mi}{24}\PYG{p}{):}
+  \PYG{c+c1}{\PYGZsh{} Definimos a en radianes}
+  \PYG{n}{a} \PYG{o}{=} \PYG{n}{a} \PYG{o}{*} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi} \PYG{o}{/} \PYG{l+m+mi}{180}
+  \PYG{c+c1}{\PYGZsh{} Parte izquierda de la matriz}
+  \PYG{n}{M2} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}
+      \PYG{p}{[}\PYG{n}{np}\PYG{o}{.}\PYG{n}{cos}\PYG{p}{(}\PYG{n}{a}\PYG{p}{),}\PYG{o}{\PYGZhy{}}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{a}\PYG{p}{),}\PYG{n}{psize}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{],}
+      \PYG{p}{[}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{a}\PYG{p}{),}\PYG{n}{np}\PYG{o}{.}\PYG{n}{cos}\PYG{p}{(}\PYG{n}{a}\PYG{p}{),}\PYG{n}{psize}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{],}
+      \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}
+  \PYG{p}{],}\PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{float}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{}T·R}
+  \PYG{n}{f} \PYG{o}{=} \PYG{n}{psize} \PYG{o}{/} \PYG{n}{d}
+  \PYG{c+c1}{\PYGZsh{} Parte derecha de la matriz}
+  \PYG{n}{M1} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}
+      \PYG{p}{[}\PYG{n}{f}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{x} \PYG{o}{*} \PYG{n}{f}\PYG{p}{],}
+      \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{f}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{y} \PYG{o}{*} \PYG{n}{f}\PYG{p}{],}
+      \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}
+  \PYG{p}{],}\PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{float}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} Tomamos las dos primeras filas del producto}
+  \PYG{n}{M} \PYG{o}{=} \PYG{n}{M2}\PYG{o}{.}\PYG{n}{dot}\PYG{p}{(}\PYG{n}{M1}\PYG{p}{)[:}\PYG{l+m+mi}{2}\PYG{p}{,:]}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos el parche}
+  \PYG{n}{p} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{warpAffine}\PYG{p}{(}\PYG{n}{im}\PYG{p}{,}\PYG{n}{M}\PYG{p}{,(}\PYG{n}{psize}\PYG{p}{,}\PYG{n}{psize}\PYG{p}{))}
+  \PYG{k}{return} \PYG{n}{p}
+\end{Verbatim}

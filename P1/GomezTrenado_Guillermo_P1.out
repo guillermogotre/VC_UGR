@@ -1,0 +1,33 @@
+\BOOKMARK [1][-]{section.1}{Consideraciones iniciales}{}% 1
+\BOOKMARK [1][-]{section.2}{Ejercicios}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Usando las funciones de OpenCV}{section.2}% 3
+\BOOKMARK [3][-]{subsubsection.2.1.1}{El c\341lculo de la convoluci\363n de una imagen con una m\341scara Gaussiana 2D}{subsection.2.1}% 4
+\BOOKMARK [3][-]{subsubsection.2.1.2}{Usar getDerivKernel para obtener las m\341scaras 1D que permiten calcular la convoluci\363n 2D con m\341scaras derivadas}{subsection.2.1}% 5
+\BOOKMARK [3][-]{subsubsection.2.1.3}{Usar la funci\363n Laplacian para el c\341lculo de la convoluci\363n 2D con una m\341scara de Laplaciana-de-Gaussiana de tama\361o variable. Usar dos tipos de borde y dos tama\361os de kernel}{subsection.2.1}% 6
+\BOOKMARK [2][-]{subsection.2.2}{Implementar apoy\341ndose en las funciones getDerivKernels, getGaussianKernel, pyrUp, pyrDown, escribir las siguientes funciones}{section.2}% 7
+\BOOKMARK [3][-]{subsubsection.2.2.1}{El c\341lculo de la convoluci\363n 2D con una m\341scara separable de tama\361o variable. Usar bordes reflejados. Mostrar resultados.}{subsection.2.2}% 8
+\BOOKMARK [3][-]{subsubsection.2.2.2}{El c\341lculo de la convoluci\363n 2D con una m\341scara 2D de primera derivada de tama\361o variable. Mostrar ejemplos de funcionamiento usando bordes a cero}{subsection.2.2}% 9
+\BOOKMARK [3][-]{subsubsection.2.2.3}{El c\341lculo de la convoluci\363n 2D con una m\341scara 2D de segunda derivada de tama\361o variable}{subsection.2.2}% 10
+\BOOKMARK [3][-]{subsubsection.2.2.4}{Una funci\363n que genere una representaci\363n en pir\341mide Gaussiana de 4 niveles de una imagen. Mostrar ejemplos de funcionamiento usando bordes}{subsection.2.2}% 11
+\BOOKMARK [3][-]{subsubsection.2.2.5}{Una funci\363n que genere una representaci\363n en pir\341mide Laplaciana de 4 niveles de una imagen. Mostrar ejemplos de funcionamiento usando bordes}{subsection.2.2}% 12
+\BOOKMARK [3][-]{subsubsection.2.2.6}{Efecto de sigma en las pir\341mides}{subsection.2.2}% 13
+\BOOKMARK [2][-]{subsection.2.3}{Im\341genes h\355bridas: \(SIGGRAPH 2006\)}{section.2}% 14
+\BOOKMARK [3][-]{subsubsection.2.3.1}{Escribir una funci\363n que muestre las tres im\341genes \(alta, baja e h\355brida\) en una misma venta}{subsection.2.3}% 15
+\BOOKMARK [3][-]{subsubsection.2.3.2}{Realizar la composici\363n con al menos 3 de las parejas de im\341genes}{subsection.2.3}% 16
+\BOOKMARK [1][-]{section.3}{Bonus}{}% 17
+\BOOKMARK [2][-]{subsection.3.1}{C\341lculo del vector m\341scara Gaussiano}{section.3}% 18
+\BOOKMARK [3][-]{subsubsection.3.1.1}{C\341lculo del tama\361o de la m\341scara seg\372n sigma}{subsection.3.1}% 19
+\BOOKMARK [3][-]{subsubsection.3.1.2}{C\341lculo de la m\341scara}{subsection.3.1}% 20
+\BOOKMARK [2][-]{subsection.3.2}{Implementar una funci\363n que calcule la convoluci\363n 1D de un vector se\361al con un vector-m\341scara de longitud inferior al de la se\361al, usar condiciones de contorno reflejada}{section.3}% 21
+\BOOKMARK [2][-]{subsection.3.3}{Implementar con c\363digo propio la convoluci\363n 2D con cualquier m\341scara 2D de n\372meros reales usando m\341scaras separables}{section.3}% 22
+\BOOKMARK [3][-]{subsubsection.3.3.1}{Comparativa de m\351todos}{subsection.3.3}% 23
+\BOOKMARK [2][-]{subsection.3.4}{Contruir una pir\341mide Gaussiana de al menos 5 niveles con las im\341genes h\355bridas calculadas en el apartado anterior.}{section.3}% 24
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Gaussian Pyramid}{subsection.3.4}% 25
+\BOOKMARK [2][-]{subsection.3.5}{Realizar todas las parejas de im\341genes h\355bridas en su formato a color}{section.3}% 26
+\BOOKMARK [3][-]{subsubsection.3.5.1}{Obtener frecuencias}{subsection.3.5}% 27
+\BOOKMARK [3][-]{subsubsection.3.5.2}{Im\341genes h\355bridas a color}{subsection.3.5}% 28
+\BOOKMARK [1][-]{section.4}{Extra}{}% 29
+\BOOKMARK [2][-]{subsection.4.1}{C\341lculo manual de PyrUp y PyrDown}{section.4}% 30
+\BOOKMARK [3][-]{subsubsection.4.1.1}{PyrDown}{subsection.4.1}% 31
+\BOOKMARK [3][-]{subsubsection.4.1.2}{PyrUp}{subsection.4.1}% 32
+\BOOKMARK [3][-]{subsubsection.4.1.3}{Problema}{subsection.4.1}% 33

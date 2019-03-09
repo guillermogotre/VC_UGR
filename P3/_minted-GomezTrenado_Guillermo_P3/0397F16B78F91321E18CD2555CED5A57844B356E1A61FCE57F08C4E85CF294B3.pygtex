@@ -1,0 +1,46 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{bonus2}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Matriz de descriptores}
+  \PYG{n}{des} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{128}\PYG{p}{),}\PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{float32}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} Lista de patches}
+  \PYG{n}{pcs} \PYG{o}{=} \PYG{p}{[]}
+  \PYG{c+c1}{\PYGZsh{} Por cada imagen de la carpeta}
+  \PYG{k}{for} \PYG{n}{imp} \PYG{o+ow}{in} \PYG{n}{os}\PYG{o}{.}\PYG{n}{listdir}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}imagenes\PYGZsq{}}\PYG{p}{):}
+      \PYG{n}{imp} \PYG{o}{=} \PYG{n}{os}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}imagenes\PYGZsq{}}\PYG{p}{,}\PYG{n}{imp}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Cargamos la imagen}
+      \PYG{n}{im} \PYG{o}{=} \PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{imp}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos los keypoints y descriptores}
+      \PYG{n}{kp}\PYG{p}{,}\PYG{n}{ds} \PYG{o}{=} \PYG{n}{getSIFT}\PYG{p}{(}\PYG{n}{im}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos los patches desde los keypoints}
+      \PYG{n}{patches} \PYG{o}{=} \PYG{p}{[}\PYG{n}{getPatch}\PYG{p}{(}\PYG{n}{im}\PYG{p}{,}\PYG{n}{k}\PYG{o}{.}\PYG{n}{pt}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],}\PYG{n}{k}\PYG{o}{.}\PYG{n}{pt}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],}\PYG{n}{k}\PYG{o}{.}\PYG{n}{size}\PYG{p}{,}\PYG{n}{k}\PYG{o}{.}\PYG{n}{angle}\PYG{p}{)} \PYG{k}{for} \PYG{n}{k} \PYG{o+ow}{in} \PYG{n}{kp}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Añadimos los descriptores a la matriz}
+      \PYG{n}{des} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{vstack}\PYG{p}{((}\PYG{n}{des}\PYG{p}{,}\PYG{n}{ds}\PYG{p}{))}
+      \PYG{c+c1}{\PYGZsh{} Añadimos los patches a la lista}
+      \PYG{n}{pcs} \PYG{o}{+=} \PYG{n}{patches}
+
+  \PYG{c+c1}{\PYGZsh{} Definimos el contenedor de clases}
+  \PYG{n}{bestLabels} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{des}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{])}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos las clases mediante kmeans}
+  \PYG{n}{retval}\PYG{p}{,} \PYG{n}{bestLabels}\PYG{p}{,} \PYG{n}{centers} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{kmeans}\PYG{p}{(}
+      \PYG{n}{des}\PYG{p}{,}
+      \PYG{l+m+mi}{2000}\PYG{p}{,}
+      \PYG{n+nb+bp}{None}\PYG{p}{,}
+      \PYG{p}{(}\PYG{n}{cv2}\PYG{o}{.}\PYG{n}{TermCriteria\PYGZus{}EPS} \PYG{o}{|} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{TermCriteria\PYGZus{}MAX\PYGZus{}ITER}\PYG{p}{,}\PYG{l+m+mi}{30}\PYG{p}{,}\PYG{l+m+mf}{0.1}\PYG{p}{),}
+      \PYG{l+m+mi}{5}\PYG{p}{,}
+      \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{KMEANS\PYGZus{}PP\PYGZus{}CENTERS}
+  \PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} Guardamos los patches y descriptores}
+  \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}descriptorsAndpatches2000\PYGZus{}custom.pkl\PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}w+b\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{outfile}\PYG{p}{:}
+      \PYG{n}{pickle}\PYG{o}{.}\PYG{n}{dump}\PYG{p}{(\PYGZob{}}
+          \PYG{l+s+s1}{\PYGZsq{}descriptors\PYGZsq{}}\PYG{p}{:} \PYG{n}{des}\PYG{p}{,}
+          \PYG{l+s+s1}{\PYGZsq{}patches\PYGZsq{}}\PYG{p}{:} \PYG{n}{pcs}
+      \PYG{p}{\PYGZcb{},}\PYG{n}{outfile}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} Guardamos la precisión, las etiquetas y el vocabulario}
+  \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}kmeanscenters2000\PYGZus{}custom.pkl\PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}w+b\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{outfile}\PYG{p}{:}
+      \PYG{n}{pickle}\PYG{o}{.}\PYG{n}{dump}\PYG{p}{(\PYGZob{}}
+          \PYG{l+s+s1}{\PYGZsq{}accuracy\PYGZsq{}}\PYG{p}{:} \PYG{n}{retval}\PYG{p}{,}
+          \PYG{l+s+s1}{\PYGZsq{}labels\PYGZsq{}}\PYG{p}{:} \PYG{n}{bestLabels}\PYG{p}{,}
+          \PYG{l+s+s1}{\PYGZsq{}dictionary\PYGZsq{}}\PYG{p}{:} \PYG{n}{centers}
+      \PYG{p}{\PYGZcb{},}\PYG{n}{outfile}\PYG{p}{)}
+\end{Verbatim}

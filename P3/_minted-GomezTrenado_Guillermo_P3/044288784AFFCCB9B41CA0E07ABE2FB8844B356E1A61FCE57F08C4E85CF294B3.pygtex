@@ -1,0 +1,12 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{ej2}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Obtener el índice invertido y la bolsa de palabras}
+  \PYG{n}{vocab}\PYG{p}{,} \PYG{n}{imgl}\PYG{p}{,} \PYG{n}{revidx} \PYG{o}{=} \PYG{n}{buildReverseIndex}\PYG{p}{()}
+  \PYG{n}{wbgs} \PYG{o}{=} \PYG{n}{revidx}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{()}
+
+  \PYG{c+c1}{\PYGZsh{} Comprobar si es la misma escena}
+  \PYG{o}{...}
+
+  \PYG{c+c1}{\PYGZsh{} Imágenes pregunta}
+  \PYG{o}{...}
+\end{Verbatim}

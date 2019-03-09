@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{nscalar}\PYG{p}{(}\PYG{n}{v1}\PYG{p}{,}\PYG{n}{v2}\PYG{p}{):}
+  \PYG{k}{return} \PYG{n}{v1}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{()}\PYG{o}{.}\PYG{n}{dot}\PYG{p}{(}\PYG{n}{v2}\PYG{p}{)}\PYG{o}{/}\PYG{p}{(}\PYG{n}{cv2}\PYG{o}{.}\PYG{n}{norm}\PYG{p}{(}\PYG{n}{v1}\PYG{p}{)}\PYG{o}{*}\PYG{n}{cv2}\PYG{o}{.}\PYG{n}{norm}\PYG{p}{(}\PYG{n}{v2}\PYG{p}{))}
+\end{Verbatim}

@@ -1,0 +1,1023 @@
+\documentclass{article}
+% pre\'ambulo
+
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,activeacute]{babel}
+\usepackage{mathtools}
+\usepackage[utf8]{inputenc}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
+  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j%
+  \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t%
+  \do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D%
+  \do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N%
+  \do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X%
+  \do\Y\do\Z}
+
+\usepackage{listings}
+%\usepackage{listingsutf8}
+%\usepackage[spanish]{babel}
+\lstset{
+	%inputencoding=utf8/latin1,
+	literate=%
+         {á}{{\'a}}1
+         {í}{{\'i}}1
+         {é}{{\'e}}1
+         {ý}{{\'y}}1
+         {ú}{{\'u}}1
+         {ó}{{\'o}}1
+         {ě}{{\v{e}}}1
+         {š}{{\v{s}}}1
+         {č}{{\v{c}}}1
+         {ř}{{\v{r}}}1
+         {ž}{{\v{z}}}1
+         {ď}{{\v{d}}}1
+         {ť}{{\v{t}}}1
+         {ň}{{\v{n}}}1                
+         {ů}{{\r{u}}}1
+         {Á}{{\'A}}1
+         {Í}{{\'I}}1
+         {É}{{\'E}}1
+         {Ý}{{\'Y}}1
+         {Ú}{{\'U}}1
+         {Ó}{{\'O}}1
+         {Ě}{{\v{E}}}1
+         {Š}{{\v{S}}}1
+         {Č}{{\v{C}}}1
+         {Ř}{{\v{R}}}1
+         {Ž}{{\v{Z}}}1
+         {Ď}{{\v{D}}}1
+         {Ť}{{\v{T}}}1
+         {Ň}{{\v{N}}}1                
+         {Ů}{{\r{U}}}1,
+	language=bash,
+	basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{{$\hookrightarrow$}\space},
+}
+
+\usepackage{graphicx}
+\graphicspath{ {screens/} }
+
+\PassOptionsToPackage{hyphens}{url}\usepackage[hyphens]{url}
+
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{longtable}
+\usepackage[table,xcdraw]{xcolor}
+% macros 
+\newcommand{\img}[2]{
+\noindent\makebox[\textwidth][c]{\includegraphics[width=#2\textwidth,]{#1}}%
+}
+
+\newcommand{\cfloat}[1]{
+\noindent\makebox[\textwidth][c]{#1}
+}
+
+% title
+\title{Visión por computador\\
+Práctica 2}
+
+\author{Guillermo G\'omez Trenado | 77820354-S \\
+guillermogotre@correo.ugr.es}
+
+\begin{document}
+% cuerpo del documento
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Detección de puntos SIFT y SURF}
+
+En este apartado analizaremos el funcionamiento de SIFT y SURF para la detección de puntos de interés para \textit{feature matching}.
+
+\subsection{Ajuste de parámetros}
+
+\subsubsection{SIFT}
+
+Además de los valores de umbral que veremos a continuación SIFT dispone de otros parámetros, entre ellos \textit{nOctaveLayers} que corresponde al número de capas por octava sobre las que se aplica un una convolución de suavizado gaussiano cada vez mayor obteniendo al final una matriz de imágenes de \textbf{Número de octavas} x \textbf{Número de capas}; \textit{nfeatures} que limita el número de características a las $n$ con mayor respuesta y \textit{sigma} que corresponde a la intensidad del primer suavizado antes de procesar la imagen.
+
+Los dos umbrales a manipular aquí son \textit{contrastThreshold} y \textit{edgeThreshold}. SIFT aproxima la Laplaciana de la Gaussiana ---LoG--- como la Diferencia de Gaussianas ---DoG--- para posteriormente buscar máximos locales en un area de $3\times3\times3$ ---cuadrados de $3\times3$ en su capa y las dos adyacentes---. Una vez que obtiene este valor para cada pixel debe discriminar qué valores son interesantes y cuáles no, el primer filtro es evidente, definimos un umbral de contraste, por debajo del cual entendemos que no son puntos de suficiente contraste y los descartamos, esta es la función del parámetro \textit{contrastThreshold}, mientras menor sea, mayor cantidad de puntos obtendremos; sin embargo, la \textit{DoG} define el valor de contraste en un píxel pero no es por sí sola capaz de discriminar entre bordes y esquinas
+
+\img{img/border}{0.1}
+
+Y los bordes son pésimos puntos de interés por la dificultad de definir el punto exacto dentro del desplazamiento sobre dicho borde, por lo tanto nos interesa discriminar entre esquinas y bordes, este es la utilidad de \textit{edgeThreshold}, para calcular el valor de borde de un punto se utiliza la matriz Hessiana
+
+\[ H(I) = \nabla_{\sigma}I * \nabla_{\sigma}I^T = \begin{bmatrix}
+\frac{\partial I}{\partial x}^2 & \frac{\partial I}{\partial y} \frac{\partial I}{\partial y}\\ 
+\frac{\partial I}{\partial y} \frac{\partial I}{\partial y} & \frac{\partial I}{\partial y}^2 
+\end{bmatrix}\]
+
+y utilizamos los dos autovalores de cada punto de la imagen, midiendo la relación entre el determinante de la matriz ($\lambda_1 \lambda_2$) y la traza ($\lambda_1 + \lambda_2$), en la práctica no se calculan los autovalores sino que se utilizan las valores de las derivadas parciales para calcular directamente la relación
+
+%dt = (ixx*iyy)-(ixy*2)  /   tr = (ixx+iyy)
+\[ r = \frac{\frac{\partial I}{\partial x}^2*\frac{\partial I}{\partial x}^2-\frac{\partial I}{\partial x}^4}{\frac{\partial I}{\partial x}^2+\frac{\partial I}{\partial y}^2}\]
+
+El valor de \textit{edgeThreshold} se compara contra la inversa del valor de $r$, por lo tanto, a menor valor del umbral mayor número de puntos se descartan.
+
+Tras modificar y evaluar los resultados de estos parámetros parece que los valores por defecto que trae OpenCV, \textit{contrastThreshold=0.4} y \textit{edgeThreshold=10} generan  una cantidad de puntos suficientemente grande ($\sim 1500$) en las imágenes evaluadas y con una buena discriminación entre zonas sin contraste, bordes y \textbf{esquinas}.
+
+\subsubsection{SURF}
+
+\textit{SURF} es una versión más eficiente de \textit{SIFT}, en vez de calcular \textit{DoG}, la calcula con un filtro de caja de diferentes tamaños 
+\\
+
+\img{img/surf_box}{0.2}
+
+Los filtros de caja pueden ser implementados de forma más eficiente ---paralelización e \textbf{imagenes integrales}\footnote{\url{https://en.wikipedia.org/wiki/Summed-area_table}}--- y utiliza estos mismo valores para la Hessiana, como vimos antes\footnote{\url{http://www.vision.ee.ethz.ch/~surf/eccv06.pdf}}
+
+\[ H(x,\sigma) =  \begin{bmatrix}
+L_{xx}(x,\sigma) & L_{xy}(x,\sigma)\\ 
+L_{xy}(x,\sigma) & L_{yy}(x,\sigma)
+\end{bmatrix}\]
+
+SURF utiliza el determinante de $H$ para definir el umbral de los puntos de interés que se aproxima a $0$ en zonas de poco contraste y en zonas donde $L$ es cercano a cero en alguna de las dos coordenadas, por este motivo sólo tiene un parámetros de umbral \textit{hessianThreshold}. Con SURF conseguimos tiempos de ejecución 3 veces más bajos\footnote{\url{https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_surf_intro/py_surf_intro.html}} aunque obtenemos más puntos de menor interés puesto que es más dificil apretar el umbral para discrimar bordes con mayor precisión. Mientras menor sea el valor del umbral, mayor número de puntos pasarán el filtro. En este caso he subido el umbral a 300 desde el valor por defecto 100, para ajustar un poco la calidad de los puntos de contraste, aunque por su diseño SURF tiene mayor dificultad discriminando entre bordes de gran contraste y esquinas de bajo contraste y devuelve más falso positivos que SIFT.
+
+\subsection{Análisis de los puntos de interés}
+
+Este apartado completo se realiza sobre la imagen \textit{yosemite1.jpg}
+
+\img{img/yosemite1}{0.5}
+
+\subsubsection{SIFT}
+
+Como ya adelanté, SIFT repite el mismo análisis en distintas octavas de la pirámide gaussiana y por cada nivel de ésta aplica diferentes desenfoques, en esta tabla podemos ver en el eje x la capa y en el eje y la octava a la que pertenece. Sift define el número de octavas en función de la resolución de la imagen, en este caso 6 y además, la primera octava ---octava $-1$--- no asciende en la pirámide sino que desciende, obteniendo una imagen del doble de tamaño.
+\\
+
+\cfloat{
+\begin{tabular}{lllll}
+\hline
+ & \cellcolor[HTML]{C0C0C0}0 & \cellcolor[HTML]{C0C0C0}1 & \cellcolor[HTML]{C0C0C0}2 & \cellcolor[HTML]{C0C0C0}3 \\ \hline
+\cellcolor[HTML]{C0C0C0}-1 & 493 & 278 & 178 & 0 \\
+\cellcolor[HTML]{C0C0C0}0 & 107 & 67 & 43 & 0 \\
+\cellcolor[HTML]{C0C0C0}1 & 27 & 15 & 13 & 0 \\
+\cellcolor[HTML]{C0C0C0}2 & 8 & 2 & 5 & 0 \\
+\cellcolor[HTML]{C0C0C0}3 & 2 & 0 & 0 & 0 \\
+\cellcolor[HTML]{C0C0C0}4 & 1 & 0 & 0 & 0 \\
+\cellcolor[HTML]{C0C0C0}5 & 0 & 0 & 1 & 0 \\ \hline
+\end{tabular}
+}
+
+Vemos que los puntos de interés se concentran en la primera octava ---imagen de mayor tamaño--- y la primera capa ---menor sigma---, se debe probablemente al hecho de encontrarnos con una imagen de mucho detalle fino donde es fácil encontrar puntos esquina de gran contraste, a medida que ascendemos en la pirámide como el ancho de la ventana se mantiene constante, el tamaño de los detalles que se evalúan es mayor. En la siguiente imagen podemos ver una representación de la imagen con los puntos sobre ésta, a cada octava le corresponde un color y a cada capa un nivel de luminosidad, vemos como abundan los puntos rojo oscuros y amarillo oscuro, que corresponden a la octava -1 y 0 en sus primeras capas, tal como reflejaba la tabla.
+
+\img{img/ej1_sift}{0.7}
+
+Debido a la forma en que SIFT calcula el tamaño que se puede obtener en el atribudo \textit{size} del \textit{keypoint} el radio es muy pequeño y nos permite dibujar todos los puntos. Para obtener los puntos sólo tenemos que convertir la imagen a gris, crear un detector/descriptor SIFT y llamarlo, aquí llamamos a SIFT.compute() porque lo utilizaremos en el siguiente apartado.
+
+\begin{lstlisting}
+def getSIFT(img,contrast_threshold=0.08,edge_threshold=10):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    sift = cv2.xfeatures2d_SIFT.create(contrastThreshold=contrast_threshold, edgeThreshold=edge_threshold)
+    kp = sift.detect(gray)
+    kp, ds = sift.compute(img,kp)
+    return kp, ds
+\end{lstlisting}
+
+Para contar los puntos sólo tenemos que desempaquetar el valor de \textit{kp.octave} en el que se incluyen un 32 bits consecutivos 3 valores de 8 bits, la octava, la capa y la escala, este último valor es equivalente a la octava, a menor octava mayor escala. 
+
+\begin{lstlisting}
+def countSIFTKeypoints(kpt,octaves=10,layers=4):
+	#Creamos la matriz con la primera fila y
+	#columna descriptiva
+	
+    counter = np.zeros((octaves+1,layers+1))
+    counter[0,1:] = np.arange(0,layers)
+    counter[1:, 0] = np.arange(-1,octaves-1)
+
+    counter[0,0] = np.NAN
+
+    for k in kpt:
+        oct, lay, sc = unpackSIFTOctave(k)
+        counter[oct+2,lay] += 1
+    counter = counter[np.max(counter[:, 1:],1) > 0]
+    return counter
+\end{lstlisting}
+
+Por último sólo tenemos que dibujar los puntos en la imagen, \textit{getTrans} calcula el desplazamiento en coordenadas cartesianas de radio $r$ con ángulo $a$ sobre una coordenada para poder pintar la línea que describe la rotación del punto. \textit{pintaSiftPoints} recorre la lista de puntos y va añadiéndolos a la imagen, con la única dificultad de convertir los puntos ajustados a subpixel en píxeles enteros para que los pueda interpretar OpenCV.
+
+\begin{lstlisting}
+def getTrans(pt,r,a):
+	#Transformación grados - radianes
+    a = np.pi/180 
+    
+    px,py=pt
+    p = np.array([r,0]).reshape((2,1))
+    M = np.array([[np.cos(a), np.sin(a)*-1],[np.sin(a),np.cos(a)]])
+    ptt = np.matmul(M,p)
+    return tuple(map(int,np.array(pt)+ptt.reshape(-1)))
+
+def pintaSiftPoints(img,kp,octaves,layers,getSize=(lambda k: int(k.size/2)),doAppend = True):
+    colors = getColors(octaves,layers)
+    for k in kp:
+        pxy = tuple(map(int,np.round(k.pt)))
+        oc,ly,sc = unpackSIFTOctave(k)
+        c = list(map(int, colors[oc+1,ly]))
+        img = cv2.circle(img.copy(),pxy,getSize(k),c,lineType=cv2.LINE_AA)
+        img = cv2.line(img.copy(),pxy,getTrans(pxy,getSize(k),k.angle),c,lineType=cv2.LINE_AA)
+    if(doAppend):
+        return appendColors(img,colors)
+    else:
+        return img
+\end{lstlisting}
+
+\subsubsection{SURF}
+
+Surf por otro lado no discrina entre capas y nos encontramos con una lista de valores, tampoco realiza un primer reescalado, todo orientado a aumentar la eficiencia para aplicaciones de tiempo real con pocos recursos, en este caso obtenemos unos 1900 puntos.
+\\
+
+\cfloat{
+\begin{tabular}{llll}
+\hline
+\rowcolor[HTML]{C0C0C0} 
+0 & 1 & 2 & 3 \\ \hline
+1505 & 354 & 85 & 12
+\end{tabular}
+}
+
+\img{img/ej1_surf}{0.7}
+
+El código para SURF es prácticamente el mismo y viene correctamente reflejado y comentado en archivo de python, la única diferencia radica en la creación del detector/descriptor y en que la octava no hay que desempaquetarla ---funciones \textit{getSURF} y \textit{pintaSiftPoints}---.
+
+\subsection{Obtener los decriptores asociados a los keypoints}
+
+Como ya dejábamos ver en la función \textit{getSIFT}, basta con llamar al método \textit{compute} de nuestro detector con los keypoints calculados para obtener el detector asociado a los puntos, estos objetos ---SIFT y SURF--- implementan la interfaz \textit{Feature2D} y tienen un método \textit{d.detectAndCompute(kp,...)} que es equivalente a ejecutar \textit{d.compute(d.detect(img,...))}.
+
+\begin{lstlisting}
+def getSIFT(img,contrast_threshold=0.08,edge_threshold=10):
+    ...
+    sift = cv2.xfeatures2d_SIFT.create(contrastThreshold=contrast_threshold, edgeThreshold=edge_threshold)
+    ...
+    kp, ds = sift.compute(img,kp)
+\end{lstlisting}
+
+SIFT devuelve por defecto un vector de 128 dimensiones mientras que el de SURF es de 64 dimensiones.
+
+\section{Correspondencia entre características}
+
+Para este ejercicio recuperamos los puntos y descriptores del ejercicio anterior y realizaremos el análisis sobre ellos.
+
+\begin{lstlisting}
+def main()
+    ...
+    siftKp1, siftDs1, _, _ = ej1(img1, pinta=True)
+    siftKp2, siftDs2, _, _ = ej1(img2, pinta=False)
+    ...
+    ej2(img1,img2,siftKp1,siftKp2,siftDs1,siftDs2,pinta=True)
+\end{lstlisting}
+
+\subsection{Pintar líneas y análisis}
+
+\subsubsection{Bruteforce+crossCheck}
+
+El código es relativamente sencillo, creamos el \textit{matcher}, pasamos la pareja de listas de descriptores y nos devuelve la correspondencia de índices de aquellos en los que haya podido hallar la pareja. 
+
+\begin{lstlisting}
+def ej2(img1,img2,siftKp1, siftKp2, siftDs1, siftDs2, pinta=True):
+    #Bruteforce + Crosscheck
+    bf_cc = cv2.BFMatcher.create(crossCheck=True)
+    
+    #Sin ordenar
+    matches = bf_cc.match(siftDs1,siftDs2)
+    
+    #Ordenados
+    m = sorted(matches,key=(lambda m: m.distance))
+    
+    #Pintamos las lineas
+    bf_rand = pintaLines(img1, img2, siftKp1, siftKp2, random.sample(matches,100))
+    bf_best = pintaLines(img1, img2, siftKp1, siftKp2, sm[:100])
+    ...
+\end{lstlisting}
+
+El algoritmo de fuerza bruta con \textit{CrossCheck} busca el vecino más cercano para cada punto de la primera imagen y de la segunda, y devuelve únicamente aquellos puntos donde ambos tengan al otro como vecino más cercano.
+
+\begin{lstlisting}
+def pintaLines(img1,img2,kp1,kp2,matches,use_angle=True, randomColor=False):
+
+    # Pegamos las dos imágenes lado a lado    
+    imgd = np.zeros((np.max((img1.shape[0], img2.shape[0])), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
+    desp = img1.shape[1]
+    imgd[:img1.shape[0], :img1.shape[1]] = img1
+    imgd[:img2.shape[0], desp:] = img2
+
+	# Obtenemos el valor mediano para el 
+	# ángulo entre las correspondencias
+    a = getMedianAngle(kp1,kp2,matches,desp)
+    
+    # Para cada match
+    for m in matches:
+        # Obtenemos ambas coordenadas
+        i1, i2 = m.queryIdx, m.trainIdx
+        k1, k2 = kp1[i1], kp2[i2]
+        p1, p2 = tuple(map(int, np.round(k1.pt))), tuple(map(int, np.round(k2.pt)+[desp,0]))
+		
+        # Calculamos el ángulo entre las
+        # correspondencias
+        ma = np.arctan2(p1[0]-p2[0],p1[1]-p2[1])
+        
+        # Si el ángulo es similar pintamos azul
+        if (use_angle and np.abs(ma-a) > 0.05):
+            imgd = cv2.line(imgd.copy(), p1, p2, (0, 0, 255), lineType=cv2.LINE_AA)
+            
+        # En otro caso rojo
+        else:
+            if not randomColor:
+                imgd = cv2.line(imgd.copy(), p1, p2, (255, 0, 0), lineType=cv2.LINE_AA)
+            
+            # Si randomColor es True dibujamos las 
+            # lineas con colores aleatorios
+            else:
+                imgd = cv2.line(imgd.copy(), p1, p2, tuple(map(int,np.random.randint(0,255,3))), lineType=cv2.LINE_AA)
+
+    return imgd
+\end{lstlisting}
+
+En la siguiente imagen podemos ver tanto una muestra aleatoria como los 100 mejores puntos, como las imágenes con las que estamos trabajando no tienen diferencias de escala sino únicamente de rotación respecto al eje de la cámara podemos utilizar el ángulo mediano como medida para calcular \textit{outliers} e \textit{inliers}. Vemos cómo BF+CC devuelve muchos matches incorrectos pero hay una mayoría suficiente como para definir una tendencia correcta.
+
+\img{img/cc_rb}{0.9}
+
+\subsubsection{Lowe-Average-2NN}
+
+En este caso el algoritmo es ligeramente distinto, en vez de obtener los puntos que estén de acuerdo entre ellos tomamos los dos vecinos más cercanos para cada punto, y sólo devolvemos la correspondencia con el primero si la distancia con el primero es suficiente mayor que con el segundo, esto nos da cierta confianza sobre la ausencia de ambigüedad de la correspondencia entre dos puntos. El objetivo último no es obtener los puntos más parecidos como en el apartado anterior, sino los más parecidos entre ellos y distintos respecto al resto.
+
+\begin{lstlisting}
+def ej2(img1,img2,siftKp1, siftKp2, siftDs1, siftDs2, pinta=True):
+    ...
+    #Lowe-Average-2NN
+    bf_2nn = cv2.BFMatcher.create(crossCheck=False)
+    matches = bf_2nn.knnMatch(siftDs1,siftDs2,2)
+	
+    # Filtro de Lowe
+    lowes = list(map(lambda x: x[0],(filter(lambda x: x[0].distance < 0.7*  x[1].distance,matches))))
+    
+    # Pintamos las imágenes
+    if pinta:
+        pintaI(pintaLines(img1, img2, siftKp1, siftKp2, random.sample(lowes, 100), randomColor=False))
+        pintaI(pintaLines(img1, img2, siftKp1, siftKp2, random.sample(lowes, 100), randomColor=True))
+\end{lstlisting}
+
+En este caso vemos cómo todos las líneas de la muestra aleatoria siguen la misma tendencia y tienen aproximadamente la misma longitud, lo cual denota una buena calidad de los emparejamientos.
+
+\img{img/lowe_tend}{0.8}
+\\
+
+\img{img/lowe_rand}{0.8}
+
+\subsection{Análisis comparado}
+
+Por las imágenes anteriores es evidente que la calidad de los emparejamientos con el filtro de Lowe es muy mayor que el filtro \textit{Crosscheck}, sin embargo no podemos pasar por alto el hecho de que \textit{CrossCheck} nos devuelve 755 \textit{matches} en este caso mientras que el filtro de \textit{Lowe} nos devuelve sólo 440 puntos. Son estrategias distintas, en el primer caso el peso de la discriminación caerían en el algoritmos encargado de calcular la homografía que en cada iteración tendrá un número mayor de \textit{outliers}, sin embargo, con \
+textit{Lowe's} devolvemos una lista de puntos mucho menor pero de una confianza mucho mayor, es posible que con éste método los puntos hallados en imágenes donde haya zonas con patrones repetidos de forma homogénea con \textit{Lowe's} se descarten en su mayoría mientras que con \textit{Crosscheck} pasarán el filtro y será Ransac ---por ejemplo--- el encargado de determinar qué puntos sirven para el cálculo de la homografía de calidad y cuáles son erróneos.
+
+\section{Generar mosaicos}
+
+En este caso he hecho un programa independiente del número de imágenes que sirve tanto para el ejercicio 3 como el cuatro.
+
+El \textbf{procedimiento} es sencillo, obtenemos las homografías para cada imagen ---luego veremos cómo---, estimo el tamaño de la imagen de salida a través del tamaño de las imágenes y sus homografías ---como las transformaciones proyectivas conservan las líneas rectas, basta con calcular la coordenada transformada de cada esquina de cada imagen para obtener los máximos y mínimos---, calculamos la traslación para encajar cada imagen en el tamaño de salida y vamos finalmente añadiendo las imágenes.
+
+\begin{lstlisting}
+def ej3(imgs):
+    # Obtengo las homografiaas
+    hs = getHomografies(imgs)
+    
+    # Calculo del desplazamiento necesario
+    # para la imagen resultanda
+    minx, maxx, miny, maxy = getTransNeeded((imgs[0].shape[1], imgs[0].shape[0]), hs)
+    
+    # Creo una imagen vacia
+    im = np.zeros((int(maxy - miny), int(maxx - minx), 3), dtype=np.uint8)
+    
+    # Matriz de traslacion 
+    ht = np.eye(3)
+    ht[0:2,2] = [-minx,-miny]
+	
+    # Aniado cada imagen a la imagen final
+    for img,h in zip(imgs,hs):
+        cv2.warpPerspective(img,ht.dot(h),(im.shape[1],im.shape[0]),dst=im,borderMode=cv2.BORDER_TRANSPARENT)
+
+    return im
+\end{lstlisting}
+
+Para \textbf{obtener las homografías}, asumimos que dos imágenes consecutivas comparten puntos comunes, obtenemos los puntos y descriptores tal como vimos en el ejercicio anterior, calculamos la homografía por parejas de imágenes y definimos finalmente la homografía $H_i$ de la imagen $I_i$ como, en este caso calculamos la homografía con \textit{cv2.findHomography(p1,p2,cv2.RANSAC,1)}, pero esta función se le pasa por parámetro, y luego veremos cómo usar esta función con nuestra propia implementación de RANSAC.
+
+\[ H_i = \prod_{j=0}^{i} Homografia(I_j)  \]
+
+\begin{lstlisting}
+def getHomografies(imgs, fH=(lambda p1,p2: cv2.findHomography(p1,p2,cv2.RANSAC,1)), pointsAlg=getSIFT):
+    # Obtenemos puntos y descriptores
+    # por cada imagen
+    sifts = [pointsAlg(img) for img in imgs]
+    
+    # Aniadimos la matriz identidad para 
+    # hacer mas sencillo el algoritmo
+    hs = [np.eye(3)]
+	
+    # Por cada pareja de imagenes
+    for i in range(len(imgs)-1):
+        # Buscamos los matches con BF+Lowe's
+        bf_2nn = cv2.BFMatcher.create(crossCheck=False)
+        matches = bf_2nn.knnMatch(sifts[i][1], sifts[i+1][1], 2)
+        lowes = list(map(lambda x: x[0], (filter(lambda x: x[0].distance < 0.7 * x[1].distance, matches))))
+        
+        # Obtenemos la correspondencia de coordenadas
+        p1,p2 = getPointsFromMatch(sifts[i][0],sifts[i+1][0],lowes)
+		
+        # Calculamos la homografía        
+        h,mask = fH(np.array(p2),np.array(p1))
+        hs.append(hs[i].dot(h))
+    return hs
+\end{lstlisting}
+
+Para obtener el \textbf{tamaño final de la imagen}, sólo tenemos que multiplicar cada homografía por la coordenada de una esquina e ir quedándonos iterativamente con los valores mínimos y máximos para el eje x y el eje y.
+
+\begin{lstlisting}
+def getTransNeeded(dimxy,lh):
+	# Valores iniciales
+    minx = np.inf
+    maxx = - np.inf
+    miny = np.inf
+    maxy = - np.inf
+    
+    # Por cada homografía
+    for h in lh:
+        # Obtengo los valores transformados de
+        # las esquinas
+        ps = np.array([[0,0,1],[0,dimxy[1],1],[dimxy[0],0,1],[dimxy[0],dimxy[1],1]]).transpose()
+        ps = h.dot(ps)
+        ps = ps/ps[2,:]
+        
+        # Calculo el maximo y minimo
+        # valor de [x,y]
+        min = np.min(ps,1)
+        max = np.max(ps,1)
+		
+		
+        # Actualizo los valores
+        minx = np.min((minx,min[0]))
+        maxx = np.max((maxx,max[0]))
+
+        miny = np.min((miny,min[1]))
+        maxy = np.max((maxy,max[1]))
+
+    return minx, maxx, miny, maxy
+\end{lstlisting}
+
+Una vez que tenemos las homografías compuestas respecto a todas las trasnformaciones anteriores, y sabemos la horquilla final de las coordenadas trasformada, calculamos una matriz de traslación para dejar al mínimo valor de x,y en el punto 0,0.
+
+\begin{lstlisting}
+def ej3(imgs):
+    ...
+    # Calculo del desplazamiento necesario
+    # para la imagen resultante
+    minx, maxx, miny, maxy = getTransNeeded((imgs[0].shape[1], imgs[0].shape[0]), hs)
+    ....
+    # Matriz de traslacion 
+    ht = np.eye(3)
+    ht[0:2,2] = [-minx,-miny]
+	....
+\end{lstlisting}
+
+\subsection{Menos de 5 imágenes}
+
+Como vemos, el resultado es extraordinario
+
+\img{img/ej3_1}{1}
+\\
+
+\img{img/ej3_2}{1}
+
+\subsection{Más de 5 imágenes}
+
+Separo este apartado y el anterior por ceñirme con mayor rigor a las pautras de la relación de ejercicios y para experimentar con otro modo de coser las imágenes, en primer lugar el resultado con el algoritmo actual
+
+\img{img/ej4_1}{1}
+
+Sin embargo vemos cómo en los puntos de cosido se producen saltos de luminosidad, la solución sería para cada par de imágenes consecutivas calcular el area en el que se superponen, calcular la desviación típida y la média y estimar los valores para transformar una al espacio de la otra ---restando la diferencia y dividiendo por la relación de desviaciones estándar---, sin embargo, una forma más rápida de conseguir un resultado más decente, asumiendo que las diferencias son menores es utilizar el máximo valor de cada píxel ---podríamos usar el valor mediano o el medio ignorando los ceros pero es un proceso más lento porque en cada pixel de salida hay un número indeterminados de imágenes superpuestas---, por rapidez no comparo píxel a píxel sino valor por valor de cada canal de color.
+
+\begin{lstlisting}
+def ej4(imgs):
+    # Calculamos las homografías
+    hs = getHomografies(imgs)
+    minx, maxx, miny, maxy = getTransNeeded((imgs[0].shape[1], imgs[0].shape[0]), hs)
+    im = np.zeros((int(np.ceil(maxy - miny)), int(np.ceil(maxx - minx)), 3), dtype=np.uint8)
+    ht = np.eye(3)
+    ht[0:2, 2] = [-minx, -miny]
+	
+	# Conservamos cada imagen transformada
+	# por separado
+    ims = []
+    for img, h in zip(imgs, hs):
+        ims.append(cv2.warpPerspective(img, ht.dot(h), (im.shape[1], im.shape[0])))
+	
+	# Las apilamos 
+    imstack = np.stack(ims,axis=-1)
+
+    # Obtenemos el máximo por cada
+    # valor de la matriz
+    im = np.max(imstack,axis=-1)
+    
+    return im.astype(np.uint8)
+\end{lstlisting}
+
+El resultado es una imágen mucho más homogénea ---excepto las imágenes que no tienen otras superpuestas--- de luminosidad media ligeramente superior a la imagen cosida anterior. Además, como la bandera de configuración \textit{cv2.BORDER\_TRANSPARENT} no interpola sobre los puntos negros, en esta imagen quedan unos bordes mucho más suavizados que en el ejemplo anterior.
+
+\img{img/ej4_2}{1}
+
+\section{Bonus 1. Puntos Adaptative Non-Maximal Suppression}
+
+Vamos a implementar ahora el detector propuesto en \textit{Brown, Szeliski y Winder (2005)}\footnote{\url{http://matthewalunbrown.com/papers/cvpr05.pdf}}. El procedimiento guarda un gran parecido con SIFT que lo decribimos en profundad en el ejercicio 1. Aunque el código es relativamente largo vamos describiendo cada paso poco a poco para facilitar la lectura.
+
+El procedimiento es sencillo, en primer lugar creamos una pirámide gaussiana donde el nivel más bajo es la imagen de tamaño el doble que la original.
+
+\begin{lstlisting}
+def anmsPoints(img,max_points=500):
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY).astype(np.float64)
+
+    # Obtenemos la pirámide gaussiana
+    P_LEVELS = 5
+    p = [cv2.pyrUp(gray),gray]
+    for i in range(P_LEVELS - 2):
+        p.append(cv2.pyrDown(p[i+1]))
+    ...
+\end{lstlisting}
+
+A continuación, aplicamos el algoritmo para cada octava, hay tres valores de $\sigma$ distinto para la guassiana, uno antes de derivar $\sigma_d$ ---escala de derivación--- , otro sobre los gradientes $\sigma_i$ ---escala de integración--- y uno posterior para calcular el ángulo $\sigma_o$. Sólo tenemos que calcular el gradiente y aplicar la integración de escala sobre las componentes de la Hessiana que utilizaremos después.
+
+\[H_l(x,y) = \nabla_{\sigma_d}P_l(x,y)\nabla_{\sigma_d}P_l(x,y)^T * g_{\sigma_i}(x,y)\]
+
+\[ H_l(x,y) = \begin{bmatrix}
+\frac{\partial I}{\partial x}^2 & \frac{\partial I}{\partial y} \frac{\partial I}{\partial y}\\ 
+\frac{\partial I}{\partial y} \frac{\partial I}{\partial y} & \frac{\partial I}{\partial y}^2 
+\end{bmatrix} \]
+
+\begin{lstlisting}
+    kplist = []
+    for octave,l in enumerate(p):
+        octave = octave-1
+        
+        # Derivative scale
+        ds = 1
+        
+        gl = cv2.GaussianBlur(l,(0,0),ds)
+        
+        # Obtenemos las derivadas
+        dx = cv2.Sobel(gl,-1,1,0)
+        dy = cv2.Sobel(gl,-1,0,1)
+
+        #Integration scale
+        integ_s = 1.5
+
+        # Calculamos las componentes de la 
+        # Hessiana
+        ixx = cv2.GaussianBlur(dx**2,(0,0),integ_s)
+        ixy = cv2.GaussianBlur(dy*dx,(0,0),integ_s)
+        iyy = cv2.GaussianBlur(dy**2,(0,0),integ_s)
+\end{lstlisting}
+
+La puntuación de un punto o \textit{corner strength} se define como
+
+\[ f_{HM}(x,y) = \frac{\det H_l(x,y)}{\mathbf{tr } H_l(x,y)} = \frac{\lambda_1 \lambda_2}{\lambda_1 + \lambda_2}\]
+
+Sin embargo no vamos a calcular los autovalores sino que calcularemos más eficientemente el determinante y la traza
+
+\begin{lstlisting}
+    # Dentro del for
+        # Calculamos el determinante
+        # y la traza
+        dt = (ixx*iyy)-(ixy**2)
+        tr = (ixx+iyy)
+
+        #Get score matrix
+        s = np.nan_to_num(dt/tr)
+        ss = np.zeros(s.shape)
+        threshold = 10
+\end{lstlisting}
+
+Ahora tenemos que calcular el máximo local para cada octava, para hacerlo eficientemente apilamos 9 copias de la matriz de $f_{HM}$ desplazadas un pixel arriba, abajo y en las diagonales, calculamos el máximo en la nueva dimensión y comprobamos que sea igual al valor en ese punto en la matriz de $f_{HM}$. Ignoramos los puntos en el borde de 1 píxel de la imagen porque no tienen vecinos suficientes para comparar.
+
+\begin{lstlisting}
+    # Dentro del for
+        #Get local maxima 3x3
+        soffset = np.stack((
+            s[0:-2, 0:-2],
+            s[1:-1, 0:-2],
+            s[2:, 0:-2],
+            s[0:-2, 1:-1],
+            s[1:-1, 1:-1],
+            s[2:, 1:-1],
+            s[0:-2, 2:],
+            s[1:-1, 2:],
+            s[2:, 2:]
+        ),axis=-1)
+		
+        ss2 = np.max(soffset,axis=2)
+        mskv = np.equal(ss2,s[1:-1,1:-1])
+        ss[1:-1,1:-1][mskv] = s[1:-1,1:-1][mskv]
+\end{lstlisting}
+
+Para calcular el valor de fuerza de esquina y la posición con precisión subpixel ajustamos una superficie de segundo grado sobre los coeficientes de correlación en una vecindad de 3 píxeles de lado, utilizando el desarrollo de \textit{Sun (2002)}\footnote{\url{http://vision-cdc.csiro.au/changs/doc/sun02ivc.pdf}}\footnote{\url{http://www.jmest.org/wp-content/uploads/JMESTN42351547.pdf}}.
+
+\[ S(x,y) = Ax^2+Bxy+Cy^2+Dx+Ey+F \]
+
+Derivamos para hallar donde la pendiente es cero y encontrar el máximo  y la posición subpixel la definimos como
+
+\[\left\{\begin{matrix}
+2Ax + By+D=0\\ 
+Bx+2Cy+E=0
+\end{matrix}\right.\]
+
+Solo tenemos que estimar los coeficientes $A..F$ y aplicar las fórmulas anteriores para cada punto que supere el \textit{umbral }de respuesta.
+
+\begin{lstlisting}
+    # Dentro del for
+        # Get subpixel
+        points = []
+        for i,j in zip(*np.where(ss>threshold)):
+            # Calculamos coeficientes
+            A = (s[i-1,j-1] - 2*s[i,j-1] + s[i+1,j-1] + s[i-1,j] - 2*s[i,j] + s[i+1,j] +s[i-1,j+1] - 2*s[i,j+1] +s[i+1,j+1])/6
+            B = (s[i-1,j-1] - s[i+1,j-1] - s[i-1,j+1] + s[i+1,j+1])/4
+            C = (s[i-1,j-1] + s[i,j-1] + s[i+1,j-1] - 2*s[i-1,j] - 2*s[i,j] - 2*s[i+1,j] + s[i-1,j+1] + s[i,j+1] + s[i+1,j+1])/6
+            D = (-s[i-1,j-1] + s[i+1,j-1] - s[i-1,j] + s[i+1,j] - s[i-1,j+1] + s[i+1,j+1])/6
+            E = (-s[i-1,j-1] - s[i,j-1] - s[i+1,j-1] + s[i-1,j+1] + s[i,j+1] + s[i+1,j+1])/6
+            F = (-s[i,j] + 2*s[i,j] - s[i,j] + 2*s[i,j] + 5*s[i,j] + 2*s[i,j] - s[i,j] + 2*s[i,j] - s[i,j])/9
+            # Calculamos offset del nuevo punto
+            ox = (B*E - 2*C*D)/(4*A*C - B**2)
+            oy = (B*D - 2*A*E)/(4*A*C - B**2)
+            new_v = A*ox**2 + B*ox*oy + C*oy**2 + D*ox + E*oy + F
+        
+            x=j
+            y=i
+            
+            # Aniadimos los puntos y respuesta originales
+            # y los nuevos valores calculados
+            to_add = [x,y,ss[i,j],x+ox,y+oy, new_v]
+            points.append(to_add)
+\end{lstlisting}
+
+Siendo $\mathbf{u}_l(x,y) = \nabla_{sigma_o} P_l(x,y) $ calculamos el ángulo en un punto como 
+
+\[ [cos \theta, sin \theta ] = \frac{\mathbf{u}}{|\mathbf{u}|}\]
+
+Y añadimos los nuevos puntos a la lista con la posición x,y subpixel atendiendo al facor de la octava en la que se encuentran, el ángulo transformado a grados, la respuesta y la octava en la que se encuentra
+\begin{lstlisting}
+    # Dentro del for
+        # Calcular angulo
+        integ_scale = 4.5
+        gu = cv2.GaussianBlur(l,(0,0),integ_scale)
+        dx = cv2.Sobel(gu,-1,1,0)
+        dy = cv2.Sobel(gu,-1,0,1)
+
+        mg = np.sqrt(dx**2+dy**2)
+        a1 = np.zeros(mg.shape)
+        a2 = a1.copy()
+
+        msk = mg != 0
+        a2[msk] = np.arcsin(dy[msk]/mg[msk])
+        
+        #Aniadimos el keypoint
+        nmsk = np.zeros(l.shape)
+        deg_factor = 180/np.pi
+        for [x,y,v,nx,ny,nv] in points:
+            kp = cv2.KeyPoint(x=nx*(2**octave), y=ny*(2**octave), _angle=a2[y,x]*deg_factor,_size=(2**octave)*3, _response=nv, _octave=octave)
+            kplist.append(kp)
+
+\end{lstlisting}
+
+El siguiente paso es es supresión de puntos no máximos, además del umbral antes mencionado que ejerce de primer filtro queremos quedarnos con los mejores $n$ puntos  ---500 según el \textit{paper}--- homogéneamente distribuidos por la imagen, utilizan para esto un valor $r$
+
+\[ r = \min_j |x_i - x_j|, s.t f(x_i) < c_{robust}f(x_j), x_j \in I \]
+
+Que busca el radio hasta el vecino más próximo con un coeficiente suficientemente mayor que el propio ---menos el punto con mayor coeficiente cuyo radio es infinito---, después ordena la lista de r y toma los 500 primeros. Este es el paso más lento del algoritmo pues es de orden $O(n^2)$ y aunque parezca contraintuitivo la forma más rápida que he encontrado de calcularlo en Python es calculando la matriz de distancias ---triangular pero calculada dos veces---, porque utilizar los índices del triángulo superior ralentizaba el proceso. Para el cálculo de la distancia, como no nos interesa el valor sino la relación ordenada prescindimos de realizar la raiz cuadrada.
+
+\begin{lstlisting}
+    # Adaptative Non-maximal supresion
+
+    pts = np.array([[p.response,p.pt[0],p.pt[1]] for p in kplist],dtype=np.float32)
+
+    # Vector de coeficientes
+    vs = pts[:,0]
+    
+    # Matriz de xs
+    xs = np.repeat(pts[:,1].reshape(1,-1),pts.shape[0],axis=0)
+    
+    # Matriz de ys
+    ys = np.repeat(pts[:,2].reshape(1,-1),pts.shape[0],axis=0)
+
+    # Obtenemos las distancias sin la
+    # raiz cuadrada
+    print("Processing distances...")
+    dis = ((xs - xs.transpose()) ** 2) + ((ys - ys.transpose()) ** 2)
+    rs = np.zeros(vs.shape)
+    
+    # Para calcular el máximo de 
+    # radio infinito
+    max_vs = vs.max()
+    
+    # Por cada punto
+    for i in range(len(kplist)):
+    	# Filtro de robustez
+        gt = dis[i,:][0.9*vs > vs[i]]
+        
+        # Si no tiene vecinos
+        if (gt.size == 0):
+        	# Si es el punto de mayor coef
+            if(vs[i] == max_vs):
+                rs[i] = np.inf
+            #else ignore
+        
+        # En otro caso nos quedamos con el 
+        # primero que devuelva igual al mínimo
+        else:
+            idxs = np.where(dis[i, :] == gt.min())[0]
+            rs[i] = dis[i,idxs[0]]
+	
+	# Ordenamos por r
+    bst_kplist = [x for _,x in sorted(zip(rs,kplist),key=lambda x: x[0], reverse=True)]
+	
+	# Devolvemos los mejores
+    return bst_kplist[:np.min((len(bst_kplist),max_points))]
+\end{lstlisting}
+
+Veamos los puntos que devuelve, tal y como afirma el \textit{paper} los puntos se encuentran homogeneamente distribuidos por la imagen en vez de devolver sólo aquellos de máximo contraste, esto cabe pensar que garantiza mejores homografías porque la distancia entre puntos es mayor para calcular las distancias respecto a la proyección y dentro de la homografía con mayor resolución.
+\\
+
+\img{img/b1_1}{0.6}
+
+En la siguiente imagen podemos observar una muestra de los puntos, comparando su valor de coeficiente ---abajo--- y su valor de $r$ ---arriba---, vemos cómo no todos los puntos con coeficientes más altos pasan al conjunto final pero sí todos los puntos del conjunto final tienen valores de contraste altos, lo cual nos da a entender que el algoritmo no va del todo mal encaminado.
+\\
+
+\img{img/b1_2}{1}
+
+Utilizando los puntos de este \textit{paper} junto a los descriptores \textit{SIFT} obtenemos costuras tan buenas como en el apartado anterior ---no pinto la imagen porque es virtualmente idéntica a la anterior---.
+
+\section{Bonus 2. Descriptores Adaptative Non-Maximal Suppression}
+
+El descriptor es una matriz $8 \times 8$ que muestrea la imagen cada 5 píxeles en una frencuencia inferior para evitar el \textit{aliasing} sobre la imagen corregida en ángulo. Tras esto obtiene los \textit{wavelets} de Haar para codificar la mayor parte de la información en los tres primeros coeficientes no nulos y utilizarlos en una etapa posterior como estrategia de indexado más eficiente a la hora de calcular las correspondencias.
+
+Tras aplicar el suavizado inicial sobre la imagen que experimentalmente he definido en 2.7 puesto que en el trabajo no lo definen calculo una matriz de traslación 4 píxeles y escalado 1/5 para dejar los 64 píxeles de interés en las $8 /times 8$ primeras casillas.
+
+\begin{lstlisting}
+def anmsDescriptors(img,kps):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	
+	# Grados a radianes
+    rad_factor = np.pi/180
+    
+    # Desenfoque inicial
+    s = 2.7
+    img_b = cv2.GaussianBlur(gray,(0,0),s)
+    
+    # Matriz de traslacion y escalado
+    t_m = np.eye(3)
+    t_m[0,0] = 1/5
+    t_m[1, 1] = 1 / 5
+    t_m[0,2] = 4
+    t_m[1, 2] = 4
+   
+\end{lstlisting}
+
+Ahora por cada punto calculamos su matriz de traslación a las coordenadas, rotación respecto al ángulo calculado anteriormente y escalado a la octava correspondiente. Como estrictamente es una matriz afín, tras hacer la composición con la anterior nos quedamos únicamente con las dos primeras filas.
+
+\begin{lstlisting}
+    kps2 = [] # Puntos final
+    descr = [] # Descriptores finales
+    for i, kp in enumerate(kps):
+        # Coordenadas
+        x,y = kp.pt
+        
+        # Angulo
+        a = kp.angle*rad_factor
+        
+        # Escalado
+        s = 1/np.power(2.,kp.octave)
+
+        # Matriz de transformación
+        # Traslación
+        t = np.eye(3)
+        t[0, 2] = -x*s
+        t[1, 2] = -y*s
+		
+        # Escalado
+        t[0,0] = s
+        t[1,1] = s
+        
+        # Rotación
+        r = np.eye(3)
+        r[:2,:2] = np.array([
+            [np.cos(a), -1*np.sin(a)],
+            [np.sin(a), np.cos(a)]
+        ])
+        
+        # Composición de matrices
+        m = t_m.dot((r.dot(t)))
+		
+		# Vector de 64 valores
+        sq = cv2.warpAffine(img_b,m[:2,:],dsize=(8,8),flags=cv2.INTER_LINEAR).reshape(-1)
+
+\end{lstlisting}
+
+Ahora, para ser inmunes a cambios de intensidad lumínica normalizamos restando la media y dividiendo por la desviación típida y finalmente calculamos la transformada de Haar
+
+\begin{lstlisting}
+    # Dentro del for
+        #Normalize sq
+        std = np.std(sq)
+        if (std == 0):
+            # Descartamos le punto
+            continue
+        sq = sq / np.std(sq)
+        sq = sq - np.mean(sq)
+
+        kps2.append(kp)
+
+        #Haar wavelet transform
+        wt = discreteHaarWaveletTransform(sq)
+        descr.append(wt)
+
+    return kps2, np.array(descr,dtype=np.float32)
+\end{lstlisting}
+
+La transformada wavelet de Haar se puede calcular de la siguiente forma, vamos aplicando las sumas y restas por parejas ---divido por la raiz cuadrada de 2--- en una mitad cada vez inferior del vector a fin de comprimir más información en las primeras posiciones.
+
+\begin{lstlisting}
+def discreteHaarWaveletTransform(x):
+    N = len(x)
+    output = np.zeros(N)
+
+    length = N >> 1
+    sq2 = np.sqrt(2)
+    while True:
+        for i in range(0,length):
+            summ = (x[i * 2] + x[i * 2 + 1])/sq2
+            difference = (x[i * 2] - x[i * 2 + 1])/sq2
+            output[i] = summ
+            output[length + i] = difference
+
+        if length == 1:
+            return output
+
+        x = output[:length << 1].copy()
+
+        length >>= 1
+\end{lstlisting}
+
+Estos son algunos de los descriptores antes de la normalización pertenecientes a diferentes octavas.
+\\
+
+\img{img/b2_1}{1}
+
+\section{Bonus 3. Estimación de la homografía mediante RANSAC}
+
+El algoritmo de ransac es relativamente sencillo, toma cuatro parejas de puntos aleatorias, calcula los coeficientes de la homografía, calcula la transformación sobre la totalidad de los puntos y compara la proporción de puntos a menos del umbral de separación ---\textit{reThreshold}--- con el umbral de confianza definido ---\textit{confidence}---, si es mayor toma los \textit{inliers} y vuelve a calcular la homografía sobre estos con el algoritmo de \textit{Levenberg-Marquardt} utilizado para resolver problemas de mínimo cuadrados no lineales y almacena el mejor resultado. Para agilizar el proceso, como el algoritmo de \textit{Levenberg-Marquardt} no está muy optimizado en Python sólo aplico esta optimización sobre la mejor homografía al final de la ejecución, aunque se puede modificar este comportamiento definiendo \textit{everyStep} a \textit{True}.
+
+\begin{lstlisting}
+def ransacHomografy(p1l,p2l,reThreshold=3,maxIters=2000,confidence=0.85,everyStep=False):
+    # Almacenar el mejor
+    min_dist = np.Inf
+    min_h = np.zeros((3,3))
+    min_mask = np.zeros(p1l.shape[0], dtype=np.bool)
+	
+	# Puntos con la tercera coordenada homogenea <x,y,1>
+    p1e = np.hstack((p1l, np.zeros((p1l.shape[0],1))+1)).transpose()
+    p2e = np.hstack((p2l, np.zeros((p2l.shape[0], 1))+1)).transpose()
+    
+    # Por cada iteracion
+    for _ in range(maxIters):
+        # Tomamos cuatro puntos aleatorios
+        idxs = np.random.choice(p1l.shape[0],4,replace=False)
+        pp1 = p1l[idxs,:]
+        pp2 = p2l[idxs,:]
+\end{lstlisting}
+
+Calculamos los coeficientes de la homografía, tal como aparece en las diapositivas de clase resolviendo el siguiente sistema de ecuaciones. Generamos la matriz, la descomponemos en valores singulares ($U\Sigma V^T$) y nos quedamos con la última columna de $V$ que contiene los coeficientes de resultado no nulo.
+
+\img{img/b3_1}{0.6}
+
+\begin{lstlisting}
+    # Dentro del for
+        #Calculamos la homografía
+        ps = []
+        for i in range(4):
+            p1 = [pp1[i][0], pp1[i][1]]
+            p2 = [pp2[i][0], pp2[i][1]]
+
+            a2 = [0, 0, 0, -p1[0], -p1[1], -1,
+                  p2[1] * p1[0], p2[1] * p1[1], p2[1]]
+            a1 = [-p1[0], -p1[1], -1, 0, 0, 0,
+                  p2[0] * p1[0], p2[0] * p1[1], p2[0]]
+
+            ps.append(a1)
+            ps.append(a2)
+
+        mPts = np.array(ps)
+
+        # svd composition
+        u, s, v = np.linalg.svd(mPts)
+\end{lstlisting}
+
+Utilizamos $\Sigma$ para determinar el rango de la matriz, y si es menor que el número de variables lo descartamos porque quiere decir que alguna de las filas era linealmente dependiente. Obtenemos $H$, la normalizamos y calculamos las distancias de los puntos proyectados respecto al objetivo.
+
+\begin{lstlisting}
+	# Dentro del for
+        # Linealmente dependiente
+        if (np.abs(s)< 1e-32).sum() > 0:
+            continue
+
+        # Definimos H y normalizamos
+        h = v[8,:].reshape((3, 3))
+        h = (1 / h[2,2]) * h
+
+        # Calculamos las distancias
+        p1p = h.dot(p1e)
+        if (p1p[2,:] == 0).sum() > 0:
+            continue
+        p1p = p1p / p1p[2,:]
+        dist = np.sqrt(np.power(p1p-p2e,2).sum(0))
+\end{lstlisting}        
+
+Seleccionamos los \textit{inliers} y definimos una máscara con ellos. Si la proporción de \textit{inliers} es superior a la confianza seguimos con el procedimiento. Calculamos la nueva H sólo con los puntos correctamente determinados, o actualizamos sencillamente si sólo vamos a aplicar la optimización una vez y el resultado conseguido es mejor al actual. Finalmente devolvemos la homografía y la máscara de \textit{inliers}
+
+\begin{lstlisting}
+    # Dentro del for
+        #Select Inliners
+        msk = dist<reThreshold
+        conf = (msk).sum()/p1l.shape[0]
+
+        print(conf)
+
+        # Si proporcion es mayor
+        if(confidence <= conf):
+            # Si everyStep: Algoritmo de Levenberg-Marquardt
+            if(everyStep):
+                #Calcular nuevo H con inliners
+                new_p1 = p1e[:,msk]
+                new_p2 = p2e[:,msk]
+
+                def evalH(h):
+                    nonlocal new_p1
+                    nonlocal new_p2
+                    r = h.reshape((3,3)).dot(new_p1)
+                    r = r / r[2, :]
+                    return [np.sqrt(np.power(r - new_p2, 2).sum(0)).sum()]+([0]*8)
+                    
+                #Levenberg-Marquardt
+                new_h = root(evalH,h.reshape(-1),method='lm')
+                
+                # Calculamos nueva distancia
+                dist = new_h.fun[0]
+                new_h = new_h.x.reshape((3,3))
+            else:
+                # Calculamos nueva distancia
+                dist = dist.sum()
+                new_h = h
+                
+            # Actualizamos si es mejor
+            if (dist < min_dist):
+                min_dist = dist
+                min_h = new_h
+                min_mask = msk
+                
+    # Si no hemos optimizado en cada iteracion            
+    if not everyStep:
+        # Algoritmo de Levenberg-Marquardt
+        # Calcular nuevo H con inliners
+        new_p1 = p1e[:, min_mask]
+        new_p2 = p2e[:, min_mask]
+
+        def evalH(h):
+            nonlocal new_p1
+            nonlocal new_p2
+            r = h.reshape((3, 3)).dot(new_p1)
+            r = r / r[2, :]
+            return [np.sqrt(np.power(r - new_p2, 2).sum(0)).sum()] + ([0] * 8)
+
+        # Levenberg-Marquardt
+        min_h = root(evalH, min_h.reshape(-1), method='lm').x.reshape((3,3))
+
+    # Devolvemos mejor homografía y máscara
+    return min_h, min_mask
+\end{lstlisting}
+
+El resultado sobre el panorama de 10 imágenes es tan bueno como en las evaluaciones anteriores y se puede visualizar ejecutando el código.
+
+\section{Bonus. Combinando todo}
+
+Si utilizamos conjuntamente los tres algoritmos que hemos definido en el bonus obtenemos muy buenos resultados sobre el panorama de 10 imágenes ---utilizando BFMatcher-2NN + Lowe's---.
+
+\img{img/bfinal_1}{1}
+
+Pero sin embargo, sobre \textit{yosemite5-7} podemos encontrarnos con problemas por una conjunción de motivos, el area de la imagen que comparten \textit{yosemite5} y \textit{yosemite6} es aproximadamente un $15\%$, mientras que ANMS ---el algoritmo de detección de puntos--- se esfuerza por encontrar un número de descriptores homogéneamente repartidos aunque no sean los mejores y finalmente nuestra implementación de RANSAC, al llevar definido el porcentaje \textit{inliers} de forma fija genera problema en la costura. Tenemos un conjunto de descriptores reducidos ---sólo 500--- que no son los de mayor calidad de contraste donde premiábamos la separación, llegamos a BFMatcher que devuelve unos 80 puntos, aplicamos el filtro de Lowe's y nos quedamos con un conjunto aún más reducido, aproximadamente unos 40 puntos de calidad no óptima, y para poder ejecutar RANSAC tenemos que bajar el valor de confianza al $50\%$ o de lo contrario no encuentra ningún subconjunto de \textit{inliers} satisfactorio, todos estos ingredientes dan como resultado una costura pobre como podemos ver a continuación.
+
+\img{img/bfinal_2}{1}
+
+Las implementaciones modernas de RANSAC no utilizan un umbral de distancia fijo ---como sí hacemos nosotros---, sino que van adaptándolo dinámicamente al mejor valor de distancia de la muestra para conseguir un número de \textit{inliers} más resistente al ruido. Sin embargo, como primera aproximación a este problema parece un resultado satisfactorio, además, en condiciones normales, como puede ser con \textit{yosemite1-4} el resultado si es de gran calidad
+
+\img{img/bfinal_3}{1}
+
+
+\end{document}

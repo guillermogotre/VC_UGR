@@ -1,0 +1,20 @@
+\BOOKMARK [1][-]{section.1}{Detecci\363n de puntos SIFT y SURF}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Ajuste de par\341metros}{section.1}% 2
+\BOOKMARK [3][-]{subsubsection.1.1.1}{SIFT}{subsection.1.1}% 3
+\BOOKMARK [3][-]{subsubsection.1.1.2}{SURF}{subsection.1.1}% 4
+\BOOKMARK [2][-]{subsection.1.2}{An\341lisis de los puntos de inter\351s}{section.1}% 5
+\BOOKMARK [3][-]{subsubsection.1.2.1}{SIFT}{subsection.1.2}% 6
+\BOOKMARK [3][-]{subsubsection.1.2.2}{SURF}{subsection.1.2}% 7
+\BOOKMARK [2][-]{subsection.1.3}{Obtener los decriptores asociados a los keypoints}{section.1}% 8
+\BOOKMARK [1][-]{section.2}{Correspondencia entre caracter\355sticas}{}% 9
+\BOOKMARK [2][-]{subsection.2.1}{Pintar l\355neas y an\341lisis}{section.2}% 10
+\BOOKMARK [3][-]{subsubsection.2.1.1}{Bruteforce+crossCheck}{subsection.2.1}% 11
+\BOOKMARK [3][-]{subsubsection.2.1.2}{Lowe-Average-2NN}{subsection.2.1}% 12
+\BOOKMARK [2][-]{subsection.2.2}{An\341lisis comparado}{section.2}% 13
+\BOOKMARK [1][-]{section.3}{Generar mosaicos}{}% 14
+\BOOKMARK [2][-]{subsection.3.1}{Menos de 5 im\341genes}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.2}{M\341s de 5 im\341genes}{section.3}% 16
+\BOOKMARK [1][-]{section.4}{Bonus 1. Puntos Adaptative Non-Maximal Suppression}{}% 17
+\BOOKMARK [1][-]{section.5}{Bonus 2. Descriptores Adaptative Non-Maximal Suppression}{}% 18
+\BOOKMARK [1][-]{section.6}{Bonus 3. Estimaci\363n de la homograf\355a mediante RANSAC}{}% 19
+\BOOKMARK [1][-]{section.7}{Bonus. Combinando todo}{}% 20

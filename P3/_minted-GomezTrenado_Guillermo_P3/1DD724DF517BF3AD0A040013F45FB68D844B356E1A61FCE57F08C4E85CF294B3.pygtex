@@ -1,0 +1,30 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{ej2}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Obtener el índice invertido y la bolsa de palabras}
+  \PYG{o}{...}
+  \PYG{c+c1}{\PYGZsh{} Comprobar si es la misma escena}
+  \PYG{o}{...}
+  \PYG{c+c1}{\PYGZsh{} Comprobar modelo}
+
+  \PYG{c+c1}{\PYGZsh{} Definimos las cuatro imágenes pregunta}
+  \PYG{n}{imgs} \PYG{o}{=} \PYG{p}{[}\PYG{n}{getimgpath}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+m+mi}{15}\PYG{p}{,}\PYG{l+m+mi}{339}\PYG{p}{,}\PYG{l+m+mi}{215}\PYG{p}{,}\PYG{l+m+mi}{227}\PYG{p}{]]}
+  \PYG{c+c1}{\PYGZsh{} Por cada imagen}
+  \PYG{k}{for} \PYG{n}{imp} \PYG{o+ow}{in} \PYG{n}{imgs}\PYG{p}{:}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos el índice en la matriz}
+      \PYG{n}{im1idx} \PYG{o}{=} \PYG{n}{imgl}\PYG{o}{.}\PYG{n}{index}\PYG{p}{(}\PYG{n}{imp}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos la bolsa de palabras}
+      \PYG{n}{v1} \PYG{o}{=} \PYG{n}{wbgs}\PYG{p}{[}\PYG{n}{im1idx}\PYG{p}{]}
+
+      \PYG{c+c1}{\PYGZsh{} Obtenemos la similitud respecto a todas las demás}
+      \PYG{n}{r} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{apply\PYGZus{}along\PYGZus{}axis}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{nscalar}\PYG{p}{(}\PYG{n}{v1}\PYG{p}{,}\PYG{n}{x}\PYG{p}{),}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{n}{wbgs}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Ordenamos por similitud y nos quedamos las seis mejores}
+      \PYG{n}{bsts} \PYG{o}{=} \PYG{n+nb}{sorted}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{r}\PYG{p}{,}\PYG{n}{np}\PYG{o}{.}\PYG{n}{arange}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{n}{r}\PYG{o}{.}\PYG{n}{size}\PYG{p}{)),}\PYG{n}{reverse}\PYG{o}{=}\PYG{n+nb+bp}{True}\PYG{p}{)[:}\PYG{l+m+mi}{6}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Mejores índices}
+      \PYG{n}{bstIdx} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{bsts}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Mejores descriptores}
+      \PYG{n}{bstDs} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{bsts}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Mejores rutas para imprimirlas}
+      \PYG{n}{bstPaths} \PYG{o}{=} \PYG{p}{[}\PYG{n}{imgl}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{bsts}\PYG{p}{]]}
+      \PYG{c+c1}{\PYGZsh{} Pintamos las 6 mejores}
+      \PYG{o}{...}
+\end{Verbatim}

@@ -1,0 +1,820 @@
+\documentclass{article}
+% pre\'ambulo
+
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,activeacute]{babel}
+\usepackage{mathtools}
+\usepackage[utf8]{inputenc}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
+  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j%
+  \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t%
+  \do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D%
+  \do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N%
+  \do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X%
+  \do\Y\do\Z}
+
+\usepackage{listings}
+%\usepackage{listingsutf8}
+%\usepackage[spanish]{babel}
+\lstset{
+	%inputencoding=utf8/latin1,
+	literate=%
+         {á}{{\'a}}1
+         {í}{{\'i}}1
+         {é}{{\'e}}1
+         {ý}{{\'y}}1
+         {ú}{{\'u}}1
+         {ó}{{\'o}}1
+         {ě}{{\v{e}}}1
+         {š}{{\v{s}}}1
+         {č}{{\v{c}}}1
+         {ř}{{\v{r}}}1
+         {ž}{{\v{z}}}1
+         {ď}{{\v{d}}}1
+         {ť}{{\v{t}}}1
+         {ň}{{\v{n}}}1                
+         {ů}{{\r{u}}}1
+         {Á}{{\'A}}1
+         {Í}{{\'I}}1
+         {É}{{\'E}}1
+         {Ý}{{\'Y}}1
+         {Ú}{{\'U}}1
+         {Ó}{{\'O}}1
+         {Ě}{{\v{E}}}1
+         {Š}{{\v{S}}}1
+         {Č}{{\v{C}}}1
+         {Ř}{{\v{R}}}1
+         {Ž}{{\v{Z}}}1
+         {Ď}{{\v{D}}}1
+         {Ť}{{\v{T}}}1
+         {Ň}{{\v{N}}}1                
+         {Ů}{{\r{U}}}1,
+	language=bash,
+	basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{{$\hookrightarrow$}\space},
+}
+
+\usepackage{graphicx}
+\graphicspath{ {screens/} }
+
+\PassOptionsToPackage{hyphens}{url}\usepackage[hyphens]{url}
+
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+
+
+% macros 
+\newcommand{\img}[2]{
+\noindent\makebox[\textwidth][c]{\includegraphics[width=#2\textwidth,]{#1}}%
+}
+
+% title
+\title{Visión por Computador\\
+Práctica 1}
+
+\author{Guillermo G\'omez Trenado | 77820354-S \\
+guillermogotre@correo.ugr.es}
+
+\begin{document}
+% cuerpo del documento
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Consideraciones iniciales}
+
+Durante toda la práctica usaremos como ejemplo la imagen de la motocicleta, en color -img- y en blanco y negro -imgbw-. Tras cargarla como una matriz de uno o tres canales de enteros sin signo de 8 bits lo transformamos a números en coma flotante y definimos los valores a entre 0 y 1.
+
+\begin{lstlisting}
+img = leeimagen("imagenes/motorcycle.bmp",1).astype(np.float)/255.
+imgbw = leeimagen("imagenes/motorcycle.bmp", 0).astype(np.float) / 255.
+\end{lstlisting}
+
+El formato \textit{uint8} es un formato muy conveniente para la visualización de imágenes pues es capaz de representar 255 niveles de grises -un canal- o 16 millones de colores -tres canales-, sin embargo es un formato poco adecuado para manipular imaǵenes con convoluciones, pues en primer lugar perdemos resolución numérica que se hará evidente al apilar sucesivas transformaciones, y por otro lado, no podemos representar valores negativos, cosa que será necesaria en la mayoría de ejercicios de esta relación.
+
+Asimismo, para la visualización de matrices que contengan valores negativos o no tengan un significado inmediato a nivel visual utilizaremos la función $visualizeM(img)$ que normaliza los valores entre 0 y 255 y devuelve una matriz de 1 o 3 canales de $uin8$.
+
+\begin{lstlisting}
+def visualizeM(img):
+    min = np.min(img)
+    max = np.max(img)
+    img = (img-min)/(max-min)*255
+    return img.astype(np.uint8)
+\end{lstlisting}
+
+\section{Ejercicios}
+
+\subsection{Usando las funciones de OpenCV}
+\subsubsection{El cálculo de la convolución de una imagen con una máscara Gaussiana 2D}
+
+En este ejercicio usaremos la función $cv2.GaussianBlur(src,ksize,sigma)$ que devuelve una imagen
+del mismo tamaño que $src$ tras aplicar un kernel Gaussiano, que no es más que la discretización de una curva normal con centro en 0 y sigma dado, dado un vector $G$, aproximado como:
+
+\[G_i= \alpha*e^{-(i-(ksize-1)/2)^2/(2*sigma^2)}\]
+
+\img{eximg/ej1_normal}{0.6}
+
+La forma más sencilla de utilizar la función es pasarle un $ksize$ determinado y $sigma=-1$, así OpenCV calcula el sigma más apropiado en base a $sigma=0.3*((ksize-1)*0.5 - 1) + 0.8$, que consigue representar dentro del vector el 99\% de la curva normal. Sin embargo, lo valores para $ksize={1,3,5,7}$ no son calculados sino definidos como
+
+\begin{lstlisting}
+[1]{1.f},
+[3]{0.25f, 0.5f, 0.25f},
+[5]{0.0625f, 0.25f, 0.375f, 0.25f, 0.0625f},
+[7]{0.03125f, 0.109375f, 0.21875f, 0.28125f, 0.21875f, 0.109375f, 0.03125f}
+\end{lstlisting}
+
+Que no encaja con ningúna pareja de valores para ksize y sigma y que tiene ciertas implicaciones como veremos en la sección Extra.
+
+Probamos a ejecutar la función con 4 valores distintos para ksize
+
+\img{eximg/ej1}{1.2}
+
+Como no podía ser de otra manera al aumentar sigma el suavizado es mayor -siempre que ksize sea suficientemente grande- pues cada punto se calcula como combinación lineal de un mayor número de vecinos que suavizan el ruido y eliminan las altas frecuencias. Para el cálculo de los valores de los bordes, como la máscara es más grandre que los valores disponibles para esas posiciones OpenCV utilizar por defecto el reflejado 101 que no es más que repetir en forma de espejo los valores del borde sin incluir el último $(bc|abcde|dc)$.
+
+\subsubsection{Usar getDerivKernel para obtener las máscaras 1D que permiten calcular la convolución 2D con máscaras derivadas}
+
+Para el cálculo de la derivada, utilizamos getDerivKernel, que toma el ordinal de la derivada para cada eje y un tamaño de kernel, para $k=3$ según la documentación utiliza el operador de Scharr, y para máscaras de tamaño mayor o igual que 5 el operador de Söbel que ya vimos en teoría.
+
+\[ K(ksize=3)_{x,y}=\{-0.5,0,0.5\}\]
+
+\[K(3)_x*K(3)_y=\begin{bmatrix}
+0.25 & 0 & -0.25 \\ 
+0 & 0 & 0\\ 
+-0.25 & 0 & 0.25 
+\end{bmatrix}\]
+
+\[ K(5)_{x,y} = \{-1,-2,0,2,1\}\]
+
+\[K(5)_x*K(5)_y = \begin{bmatrix}
+1 & 2 & 0 & -2 & -1\\ 
+2 & 4 & 0 & -4 & -2\\ 
+0 & 0 & 0 & 0 & 0\\ 
+-2 & -4 & 0 & 4 & 2\\ 
+-1 & -2 & 0 & 2 & 1
+\end{bmatrix}\]
+
+Se trata en definitiva de la aproximada de la discretización de un curva gaussiana como podemos ver en la siguiente imagen\footnote{http://campar.in.tum.de/Chair/HaukeHeibelGaussianDerivatives}. 
+
+\img{eximg/ej2_curves}{0.5}
+
+Esto nos permite dos cosas, en primer lugar eliminar el impacto del ruido del cálculo de la derivada de una imagen en una o ambas coordenadas y en segundo lugar, poder realizar la derivada de una imagen en distintas frecuencias ajustando el tamaño del kernel y consecuentemente el sigma de la normal subyacente. el resultado del producto de las dos componentes de la máscara separable es la derivada de una imagen respecto a ambas coordenadas, como se aprecia en la siguiente imagen \footnote{http://www.vanosta.be/scalespace.htm}.
+
+\img{eximg/ej2_dot}{0.5}
+
+A continuación calculamos la primera derivada en ambos ejes con distintos tamaños de kernel
+
+\img{eximg/ej2}{1.2}
+
+Podríamos también calcular la derivada en uno de los ejes, llamando a $cv2.getDerivKernel$ con $dx=1$ y $dy=0$ o vicecersa, que nos devolvería para uno de los ejes la normal y para el otro su primera derivada, como la suma de los valores de la primera derivada es 0, el producto de ambas componentes separables da una matriz de suma 0.
+
+\img{eximg/ej2_p}{1.2}
+
+Para el cálculo basta con obtener ambas componentes del kernel y llamar a sepFilter2D -su segundo parámetro es el tipo de salida deseado, -1 para permanecer igual-.
+
+\begin{lstlisting}
+kx,ky = cv2.getDerivKernels(dx,dy,ksize,normalize=True)
+out = cv2.sepFilter2D(img,-1,kx,ky)
+\end{lstlisting}
+
+
+\subsubsection{Usar la función Laplacian para el cálculo de la convolución 2D con una máscara de Laplaciana-de-Gaussiana de tamaño variable. Usar dos tipos de borde y dos tamaños de kernel}
+
+Podemos definir la laplaciana de la gaussiana como la suma de las derivadas parciales respecto a x e y. A continuación podemos ver cada una de ellas, respectivamente, derivada de la gaussiana respecto a la x, la derivada respecto a la y y la laplaciana de la gaussiana.
+
+\img{eximg/ej3_lap}{0.8}
+
+Se aprecia claramente la forma de sombreros, y es en definitiva ese tipo de formas las que en su aplicación intentaremos buscar por efecto del pattern-matching, mayores sigma daran mayores border, con mayor circunferencia y mayor grosor. A continuación vemos la aplicación de dos tamaños de kernel para la laplaciana con dos tipos de borde, constante a 0 y reflejado por defecto.
+
+\img{eximg/ej3}{1}
+
+Los tamaños de kernel utilizado son 5 y 17, que son el resultado de aplicar la formula $(2 * sigma - 1) / 0.3)$ y tomar el primer valor entero impar superior o igual para sigma 1 y 3 ---como se pide en el ejercicio---; esto no es más que la inversa de la fórmula antes descrita para calcular $sigma$ por OpenCV dado un $ksize$.
+
+En la siguiente imagen podemos ver cómo la laplaciana es mínima es las zonas de mayor contraste y su composición con otra función dada es 0 en estos puntos -así como en las zonas sin contraste-, lo cual es un excelente primer acercamiento para definir un método con el que hayar bordes.
+
+\img{eximg/ej3_lcom}{0.7}
+
+Posteriormente mediante el uso de filtros se puede discriminar entre un caso -alto contraste- y el otro -sin contraste-. En definitiva, con la suma de las segundas derivadas en x e y lo que nos interesa es encontrar aquellas zonas donde el contraste sea máximo -valor igual a 0 en la aplicación de la laplaciana- en ambas cordenadas de forma simultanea, y por lo tanto su suma sea 0.
+
+Volviendo a las imágenes a las que hemos aplicado la laplaciana observamos dos cosas, el uso de un tamaño de kernel menos permite encontrar bordes más finos -de mayor detalle- mientras que valores mayor destacan bordes más gruesos, si nos fijamos en el borde de la rueda por ejemplo, vemos como tenemos un borde negro, otro blanco y justo en medio, con valor 0 está el borde de interés. En segundo lugar, observamos el impacto del borde, mientras que con el borde reflejado no encontramos ningún contraste en los puntos más cercanos al borde; con el borde constante a 0 vemos el resultado de una zona de alto contraste que visualizamos en la imagen como un marco oscuro.  
+
+\subsection{Implementar apoyándose en las funciones getDerivKernels, getGaussianKernel, pyrUp, pyrDown, escribir las siguientes funciones}
+
+Para los siguientes ejercicios en vez de utilizar $cv2.sepFilter2D$ vamos a implementar nuestra propia función de cálculo de convoluciones separables. Para ello tenemos que 
+
+\begin{enumerate}
+\item Verificar que el tamaño de la máscara es impar
+\item Obtener el tamaño del borde
+\item Separar la imagen en tantos canales como tenga la imagen
+\item Obtener una copia de la imagen con el borde correspondiente
+\item Aplicar la máscara separable en la coordenada x
+\item Aplicar la máscara separable en la coordenada y
+\end{enumerate}
+
+\begin{lstlisting}
+BORDER_MIRROR = cv2.BORDER_REFLECT_101
+BORDER_CONSTANT = cv2.BORDER_CONSTANT
+def applySepConv(Mfull,k,border,border_val=0.):
+    kx,ky = k
+    assert ((kx.size%2 == 1) and (ky.size%2 == 1))
+
+    #Get border image
+    borderWidth = kx.size // 2
+
+    res = []
+    for M in cv2.split(Mfull):
+        if border == BORDER_MIRROR:
+            M2 = getMirrorBorder(M,borderWidth)
+        else:
+            M2 = getConstantBorder(M,borderWidth,border_val)
+
+        #Apply kx
+        M3 = np.zeros((M2.shape[0],M.shape[1]))
+        for c in range(M.shape[1]):
+            M3[:,c] = np.matmul(M2[:,c:c+2*borderWidth+1],kx.reshape((-1,1))).reshape((-1))
+
+        M4 = np.zeros(M.shape)
+        for r in range(M.shape[0]):
+            M4[r,:] = np.matmul(ky.reshape((1,-1)),M3[r:r+2*borderWidth+1,:]).reshape((-1))
+        res.append(M4)
+    return cv2.merge(res)
+\end{lstlisting}
+
+Las funciones para obtener la copia con borde las veremos en sus correspondientes aparatados. Asimismo, en el Bonus veremos otra forma de implementarlo y tendremos oportunidad de comparar el rendiemiento. En este caso obtenemos cada fila ---o columna--- resultado como el producto matricial de una submatriz $M[i-ksize/2:i+ksize/2+1,:]$ por la componente de la máscara separable, devolviendo en cada casilla del vector solución la combinación lineal de los $ksize$ valores perpendiculares al punto en cuestión con los valores del vector de la máscara separable.
+
+En primer lugar tenemos una imagen de tamaño $(m.x+ksize-1,m.y+ksize-1)$ que corresponde a la imagen más el borde, tras aplicar la transformación con la componente x de la máscara obtenemos una nueva matriz de tamaño $(m.x+ksize-1,m.y)$ y en última instancia, tras aplicar la componente en $y$ obtenemos una matriz del tamaño original $(m.x,m.y)$
+
+\subsubsection{El cálculo de la convolución 2D con una máscara separable de tamaño variable. Usar bordes reflejados. Mostrar resultados.}
+
+Para obtener los bordes reflejados implementamos la función $getMirrorBorder$ que devuelve una imagen de tamaño $(m.x + 2*borderx, m.y + 2*bordery)$.
+
+\begin{lstlisting}
+def getMirrorValue(i,max,border):
+    i = i-border
+    if i < 0:
+        i = (i)*-1
+    elif i >= max:
+        i = 2*max - i - 2
+    return i
+
+def getMirrorBorder(M,border):
+    origHeight = M.shape[0]
+    origWidth = M.shape[1]
+    M2 = np.zeros((origHeight+2*border,origWidth+2*border))
+    #Center Image
+    for r in range(origHeight+2*border):
+        for c in range(origWidth+2*border):
+            orir = getMirrorValue(r,origHeight,border)
+            oric = getMirrorValue(c,origWidth,border)
+            M2[r,c] = M[orir,oric]
+    return M2
+\end{lstlisting}
+
+El reflejado que implementamos es el correspondiente al reflejado por defecto de OpenCV que no repite el pixel del perímetro, pues introduce artificios en la imagen ---dos píxeles consecutivos iguales--- que parece corregir mejor el reflejado 101.
+
+Para poner a prueba nuestro método vamos a obtener una máscara Gaussiana ---tamaño variable y sigma calculada automáticamente por OpenCV con la fórmula ya antes descrita--- y llamaremos a la función con bodes reflejados.
+
+\begin{lstlisting}
+def aplicarGaussiana(img,ksize):
+    ka = cv2.getGaussianKernel(ksize,-1)
+    ima = applySepConv(imgbw,(ka,ka),BORDER_MIRROR)
+    return ima
+\end{lstlisting}
+
+\img{eximg/ej4}{0.8}
+
+\subsubsection{El cálculo de la convolución 2D con una máscara 2D de primera derivada de tamaño variable. Mostrar ejemplos de funcionamiento usando bordes a cero}
+
+Para obtener los bordes constantes en este caso es más sencilla, sencillamente creamos una matriz del tamaño deseado constante a un valor y sustituimos el centro por nuestra imagen original.
+
+\begin{lstlisting}
+def getConstantBorder(M,border,val):
+    origHeight = M.shape[0]
+    origWidth = M.shape[1]
+    M2 = np.full((origHeight + 2 * border, origWidth + 2 * border),val, dtype=M.dtype)
+    M2[border:origHeight+border,border:origWidth+border] = M
+    return M2
+\end{lstlisting}
+
+A continuación llamamos a nuestra función para aplicar kernel separables con el kernel obtenido de la llamada a $getDerivKernels$ con $dx=dy=1$.
+
+\img{eximg/ej5_k}{0.8}
+
+\begin{lstlisting}
+def aplicarPrimeraDeriv(img,ksize):
+	kb = cv2.getDerivKernels(1,1,ksize)
+	imb = applySepConv(imgbw,kb,BORDER_CONSTANT,0.)
+	return imb
+\end{lstlisting}
+
+\img{eximg/ej5}{0.8}
+
+\subsubsection{El cálculo de la convolución 2D con una máscara 2D de segunda derivada de tamaño variable}
+
+De igual forma que en el anterior obtenemos el kernel y llamamos a $applySepConv$
+
+\img{eximg/ej6_k}{0.8}
+
+\begin{lstlisting}
+def aplicarSegundaDeriv(img,ksize):
+	kb = cv2.getDerivKernels(2,2,ksize)
+	imb = applySepConv(imgbw,kb,BORDER_CONSTANT,0.)
+	return imb
+\end{lstlisting}
+
+\img{eximg/ej6}{0.8}
+
+\subsubsection{Una función que genere una representación en pirámide Gaussiana de 4 niveles de una imagen. Mostrar ejemplos de funcionamiento usando bordes}
+
+Para realizar la pirámide gaussiana definimos el método $gaussianPyramid$ de la siguiente manera
+
+\begin{lstlisting}
+def gaussianPyramid(img,n,borderType=cv2.BORDER_DEFAULT,borderConstant=0.):
+    M = np.zeros((halfProgression(img.shape[0],n),img.shape[1]))
+    beg = 0
+    for i in range(n):
+        M[beg:beg+img.shape[0],:img.shape[1]] = img
+        beg += img.shape[0]
+        if i != n-1:
+            if (borderType == cv2.BORDER_CONSTANT):
+                img = getConstantBorder(img, 2, borderConstant)
+                img = cv2.pyrDown(img,borderType=cv2.BORDER_DEFAULT)
+                img = img[1:-1,1:-1]
+            else:
+                img = cv2.pyrDown(img,borderType=borderType)
+    return M
+\end{lstlisting}
+
+El funcionamiento es muy sencillo, utiliza $halfProgression$ para calcular el tamaño de la matriz final. Como pyrDown no permite el uso de $cv2.CONSTANT_BORDER$ lo he implementado yo a mano añadimos un borde de tamaño dos, al reducir la imagen a la mitad resulta en un borde de tamaño 1 y eliminamos el borde. En cada iteración reduce la imagen a la mitad tras aplicar el suavizado gaussiano ---en el extra tendremos oportunidad de ver cómo funciona exactamente al implementarlo--- y almacena la nueva imagen; éstas se van añadiendo a la matriz resultado para poder visualizar la imagen.
+
+\img{eximg/ej7}{1}
+
+Se aprecia perfectamente el efecto del borde constante negro o el uso del reflejado 101, mientras que la imagen de la izquierda no tiene ningún marco que rompa la continuidad de la foto, la imagen de la izquierda, realizada con borde constante, introduce un marco más oscuro de 1 pixel de grosor, gruto de aplicar la convolución 5x5 sobre el borde, que introduce un \textit{marco} de dos píxeles que se queda en uno al reducir la imagen a la mitad tomando las filas y columnas impares únicamente.
+
+\subsubsection{Una función que genere una representación en pirámide Laplaciana de 4 niveles de una imagen. Mostrar ejemplos de funcionamiento usando bordes}
+
+En este caso la función es ligeramente más compleja, pero los pasos son sencillas
+
+\begin{enumerate}
+\item Separamos la imágen en canales que después uniremos
+\item Creamos una matriz negra con el tamaño final como en el ejercicio anterior pero con el doble de ancho para almacenar la bajada y la subida de la pirámide
+\item Reducimos la imagen por cada nivel
+	\begin{enumerate}
+		\item Añadimos la imagen a la matriz resultado para visualizarla
+		\item Obtenemos la imagen reducida
+		\item Calculamos la diferencia entre reescalar la imagen reducida y la imagen original antes de reducirla en el paso anterior $(M_{dif}[i])$
+		\item almacenamos esta diferencia
+	\end{enumerate}
+\item Aumentamos la imagen por cada nivel
+	\begin{enumerate}
+		\item Añadimos la imagen a la matriz resultado
+		\item Reescalamos la imagen reducida al mismo tamaño que $(M_{dif}[i])$
+		\item Sumamos la diferencia a la imagen reescalada
+	\end{enumerate}
+\end{enumerate}
+
+\begin{lstlisting}
+def laplacianPyramid(imgFull,n,borderType=cv2.BORDER_DEFAULT,borderConstant=0.,pyrDown=cv2.pyrDown, pyrUp = cv2.pyrUp):
+    res = []
+    for img in cv2.split(imgFull):
+        M = np.zeros((halfProgression(img.shape[0], n+1), img.shape[1]*2))
+        offset = img.shape[1]
+        beg = 0
+        difs = []
+        for i in range(n+1):
+            M[beg:beg + img.shape[0], :img.shape[1]] = img
+            if (i != n):
+                beg += img.shape[0]
+                if (borderType == cv2.BORDER_CONSTANT):
+                    img2 = getConstantBorder(img,2,borderConstant)
+                    img2 = pyrDown(img2,borderType=cv2.BORDER_DEFAULT)
+                    img2 = img2[1:-1,1:-1]
+                else:
+                    img2 = pyrDown(img,borderType=borderType)
+                difs.append(img-pyrUp(img2,dstsize=(img.shape[1],img.shape[0])))
+                img = img2
+
+        beg = 0
+        for i in range(n+1):
+            M[beg:beg+img.shape[0],offset:offset+img.shape[1]] = img
+            if (i != n):
+                beg += img.shape[0]
+                dif = difs.pop()
+                img2 = pyrUp(img,dstsize=(dif.shape[1],dif.shape[0]))
+                img2 += dif
+                img = img2
+        res.append(M)
+    return cv2.merge(res)
+\end{lstlisting}
+
+Algo que se aprecia en el código es el úso de dos parámetros en la llamada \textit{pyrDown} y \textit{pyrUp}, por defecto a la función de OpenCV pero que permite cambiarla por otra función de escalado, como haremos en el ejercicio extra.
+
+El efecto del borde se aprecia de la misma manera que en el ejercicio anterior, sin embargo, como almacenamos la diferencia de cada imagen reescalada con la imagen original, esto no afecta al resultado final ---reconstrucción de la imagen---, aunque sí a la visualización de las imágenes intermedias.
+
+\img{eximg/ej8_c}{0.8}
+
+\img{eximg/ej8_r}{0.8}
+
+\subsubsection{Efecto de sigma en las pirámides}
+
+La máscara concreta que usa OpenCV para el suavizado previo al escalado es:
+
+\[\frac{1}{256} \begin{bmatrix} 1 & 4 & 6 & 4 & 1 \\ 4 & 16 & 24 & 16 & 4 \\ 6 & 24 & 36 & 24 & 6 \\ 4 & 16 & 24 & 16 & 4 \\ 1 & 4 & 6 & 4 & 1 \end{bmatrix}\]
+
+Que no se corresponde con ningún valor de $sigma$ para una máscara gaussiana de tamaño 5. Y esto tiene una importancia crítica, cualquier otra máscara ---aunque sea de tamaño cinco---, como veremos en el ejercico extra introduce artificios en la función $pyrUp$ fruto de suavizar una imagen \textit{con una rejilla negra}. Y aunque no sea un problema para reconstruir la imagen pues almacenamos la diferencia sí que sería un problema para comprimir la imagen ---que es el objetivo al fin y al cabo de este método--- pues lo que nos interesa es conseguir grandes extensiones de areas con el mismo color que son eficientes en compresión.
+
+Para el post-suavizado de pyrUp OpenCV utiliza esa misma convolución multiplicada por cuatro, pues antes del suavizado hay tres píxeles a 0 por cada pixel con información de color.
+
+La importancia de sigma para la aplicación de una pirámide laplaciana, como ya hemos anticipado, se debe a la posterior facilidad de compresión, tanto un sigma demasiado alto como demasiado bajo produciría demasiada información en la capa de diferencia y la compresión sería pobre. Por otro lado, la importancia para la aplicación de una pirámide gaussiana radica en replicar en la medida de lo posible el efecto de la apreciación de las frecuencias altas a medida que nos alejamos de una imagen, un sigma demasiado bajo introduciría \textit{aliasing}\footnote{https://es.wikipedia.org/wiki/Aliasing}, y demasiado alto produciría imágenes cada vez más borrosas eliminando demasiadas frecuencias altas.
+
+\img{eximg/aliasing}{1}
+
+\subsection{Imágenes híbridas: (SIGGRAPH 2006)}
+
+Para este ejercicio vamos a tomar parejas de imágenes alineadas y sumaremos las frecuencias altas de una a las frecuencias bajas de otra. 
+
+Para obtener las frecuencias altas podemos usar o bien la laplaciana de la gaussiana o bien restar a la imagen original la imagen suavizada, pues la primera aproxima a la segunda.
+
+\[ I - G \approx L\]
+
+\img{eximg/ej9_approx}{0.8}
+
+En nuestro caso, y por fidelidad al \textit{paper} utilizaremos la primera forma, es decir la diferencia de la imagen original y su gaussiana.
+
+Por otro lado, para obtener las frecuencias bajas basta con aplicar la gaussiana a la imagen objetivo. 
+
+Como la laplaciana es una matriz de suma 0 y la gaussiana de suma 1, su aplicación nos devolverá una imagen de media 0 y una imagen con la misma luminosidad que la original, que al sumarlas dará una imagen de luminosidad normal ---no tenemos que ajustar ni normalizar---.
+
+El propósito de este proceso es almacenar en una única imagen dos imágenes distintas, donde al acercarnos ---por primacía de las altas frecuencias--- veamos una de las imágenes, y al alejarnos, ya que perdemos información visual de las altas frecuencias, queden las bajas y observemos únicamente esta, el efecto se puede replicar ---sin tener que andar de una lado a otro por el cuarto--- utilizando una pirámide gaussiana como así haremos.
+
+En el paper, utilizan la transformada de fourier para encontrar el punto en el que la ganancia en amplitud es de 0.5 respecto al valor de sigma de la gaussiana en cada una de las imágenes de la pareja, éste será el valor de sigma que utilicen para separar las frecuencias, que en nuestro caso aproximaremos sencillamente a ojo buscando un resultado convincente.
+
+\subsubsection{Escribir una función que muestre las tres imágenes (alta, baja e híbrida) en una misma venta}
+
+El proceso es sencillo:
+
+\begin{enumerate}
+\item Obtenemos las bajas frecuencia de la primera imagen dado un sigma
+\item Obtenemos las altas frecuencias de la segunda imagen dado otro sigma
+\item Sumamos las dos imagénes y limitamos los valores entre 0 y 1 ---recordamos que las imágenes originales estaban definidas ya entre 0 y 1---.
+\item Hacemos la composición de la piramide gaussiana de la imágen híbrida con la imagen de bajas frecuencias y la normalización de las altas frecuencias.
+\end{enumerate}
+
+Para las bajas frecuencias por defecto se utiliza la función $cv2.GaussianBlur$ y para las altas $highFreq$ que aplica la gausiana y se la resta a la imagen original.
+
+\begin{lstlisting}
+def highFreq(img,sigma):
+    ksize = ocvKsize(sigma) #OpenCV formula sigma->ksize
+    kx = cv2.getGaussianKernel(ksize, sigma)
+    img2 = cv2.sepFilter2D(img,-1,kx,kx)
+    img = img - img2
+    return img
+
+\end{lstlisting}
+
+\begin{lstlisting}    
+def hybridImg(img1,img2,s1,s2,lF=cv2.GaussianBlur,hF=highFreq):
+
+    imgl = lF(img1,(0,0),s1)
+    imgh = hF(img2,s2)
+    imgf = np.clip(imgl + imgh,0,1)
+
+    M = customGaussianPyramid(imgf,4)
+    if len(img1.shape) == 3:
+        M2 = np.zeros((img1.shape[0] * 2, img1.shape[1] * 2,3), dtype=np.uint8)
+    else:
+        M2 = np.zeros((img1.shape[0] * 2, img1.shape[1] * 2), dtype=np.uint8)
+    M2[:M.shape[0],:M.shape[1]] = visualizeM(M)
+
+    M2[:imgh.shape[0], img1.shape[1]:img1.shape[1] + imgh.shape[1]] = visualizeM(imgh)
+    M2[imgh.shape[0]:imgh.shape[0]+imgl.shape[0], img1.shape[1]:img1.shape[1] + imgl.shape[1]] = visualizeM(imgl)
+
+    return M2
+\end{lstlisting}
+
+Posteriormente, en el bonus, llamaremos a $hybridImg$ con nuestras propias funciones y no con las de OpenCV.
+
+\subsubsection{Realizar la composición con al menos 3 de las parejas de imágenes}
+
+Vamos a llamar a $hybridImg$ con las siguientes parejas y valores de sigma, el sigma de la imagen de la que queremos las frecuencias bajas por regla general es mayor que la de las altas frecuencias, esto ---intuitivamente--- nos ayuda a separa las dos imágenes y acentuar el efecto dejando un rango de frecuencias vacío.
+
+\begin{lstlisting}
+["imagenes/fish.bmp","imagenes/submarine.bmp",7,2.6]
+["imagenes/bicycle.bmp", "imagenes/motorcycle.bmp", 5,2.6]
+["imagenes/plane.bmp", "imagenes/bird.bmp", 5,1.85]
+["imagenes/cat.bmp", "imagenes/dog.bmp", 7,2.6]
+["imagenes/marilyn.bmp", "imagenes/einstein.bmp", 5, 1.4]
+\end{lstlisting}
+
+\img{eximg/ej9_5}{0.8}
+\\
+
+\img{eximg/ej9_3}{0.8}
+\\
+
+\img{eximg/ej9_4}{0.8}
+\\
+
+\img{eximg/ej9_2}{0.8}
+\\
+
+\img{eximg/ej9_1}{0.8}
+
+\section{Bonus}
+
+\subsection{Cálculo del vector máscara Gaussiano}
+
+\subsubsection{Cálculo del tamaño de la máscara según sigma}
+
+Este primer punto es conflictivo, por un lado queremos tomar la mayor cantidad posible del area de la curva normal ---ninguna matriz finita puede albergar el 100\%---, y por otro lado, cuanto menor sea la máscara más eficiente será el proceso. Tenemos 3 opciones:
+
+\begin{enumerate}
+\item $f(x)=ceil(3*sigma),+1 \textup{ si es par}$
+
+Que consigue albergar aproximadamente el 86\% del area de la curva
+
+\item f(x)=4*sigma+1
+
+Con un area del 95\% aproximadamente
+
+\item $f(x)=ceil((2*sigma-1)/0.3),+1$ si es par
+
+Que acoge el 99\% de la curva y es la opción que utiliza OpenCV
+\end{enumerate}
+
+A continuación podemos ver los distintos resultados para $sigma=5$
+
+\img{eximg/ej10_ksize}{0.8}
+
+\img{eximg/ej10_ksizeimg}{0.8}
+
+Cuesta distinguir uno de otro, aunque es posible que haya situaciones de alto contraste donde la diferencia sea más evidente, en nuestro caso usaremos la tercera opción por poder realizar comparativas con OpenCV, aunque la segunda opción parece la apuesta más razonable entre fidelidad al resultado matemático y eficiencia computacional.
+
+\subsubsection{Cálculo de la máscara}
+
+Como la máscara es separable, simétrica en cualquiera de sus ejes o diagonales y por lo tanto ambas componentes son idénticas sólo calculamos y devolvemos una, de la misma manera que hace OpenCV.
+
+Para calcular la máscara:
+
+\begin{enumerate}
+\item Definimos un vector desde -ksize/2 hasta ksize/2 ambos inclusive ---división entera---.
+\item Aplicamos la función $gauss$ en cada valor del vector.
+\item Normalizamos para que la suma de las componentes del vector sea igual a 1.
+\end{enumerate}
+
+\begin{lstlisting}
+def gauss(x,sigma):
+    return exp(-0.5*((x**2)/(sigma**2)))
+\end{lstlisting}
+
+\begin{lstlisting}
+def gaussianMaskV(sigma,formulae=0):
+    ksize = ... #fórmulas antes vistas
+    v = np.arange(-(ksize//2),ksize//2+1,1)
+    v = np.vectorize(gauss)(v,sigma)
+    v = v/np.sum(v)
+    return v
+\end{lstlisting}
+
+Las imágenes de las tres máscaras gaussianas del apartado anterior han sido realizadas con esta función.
+
+No hay que olvidar que esto es una aproximación ---la misma que usa OpenCV--- para discretizar la gaussiana, aunque hay otros acercamientos en la práctica como calcular la integral entre $[x-0.5,x+0.5]$ para la función gaussiana $f(x)=\frac{1}{\sqrt{(2\pi)}x\sigma}e^{-\frac{x^2}{2x\sigma^2}}$, lo cual también se realiza por aproximación ---normalmente muestre aleatorio---.
+
+\subsection{Implementar una función que calcule la convolución 1D de un vector señal con un vector-máscara de longitud inferior al de la señal, usar condiciones de contorno reflejada}
+
+Para realizar este ejercicio implementamos dos métodos, el primero $mirrorVector(v,b)$ nos devuelve un nuevo vector con el tamaño de $v$ más dos veces el tamaño del borde $b$ con los elementos reflejados. Si el valor a copiar es menor que 0 devuelve el valor absoluto y si es mayor devuelve el tamaño del vector original menos el punto más 2.
+
+\begin{lstlisting}
+def mirrorVector(v,b):
+    res = np.zeros(v.size+2*b)
+    for i in range(res.size):
+        p = i - b
+        if p >= v.size:
+            p = v.size - (p+2)
+        elif p < 0:
+            p = np.abs(p)
+        res[i] = v[p]
+    return res
+\end{lstlisting}
+
+Una vez hecho esto es fácil, definimos el método $conv1D$ que hace lo siguiente
+
+\begin{enumerate}
+\item Obtiene el vector reflejado con tamaño original más dos veces el borde
+\item Crea un vector \textit{resultado} del mismo tamaño que el original a 0
+\item Va recorriendo el vector resultado y rellenando cada valor con la combinación lineal de los valores correspondientes del vector reflejado por el kernel.
+\end{enumerate}
+
+\begin{lstlisting}
+def conv1D(v,k):
+    assert (k.size % 2 == 1)
+    mv = mirrorVector(v, k.size//2)
+    ksize = k.size
+    res = np.zeros(v.size)
+    k = k.reshape((-1,1))
+    for i in range(v.size):
+        res[i] = np.matmul(mv[i:i+ksize].reshape((1,-1)),k)
+    return res
+\end{lstlisting}
+
+\subsection{Implementar con código propio la convolución 2D con cualquier máscara 2D de números reales usando máscaras separables}
+
+Basándonos en el ejercicio anterior hacer esto es muy sencillo, tan sólo tenemos que recorrer primero la matriz en un sentido ---por columnas--- y luego en el otro ---por filas--- aplicando la correspondiente componente de la máscara separable; realizando esto para cada canal de la imagen original.
+
+\begin{lstlisting}
+def conv2D(mfull,k):
+    res = []
+    kx,ky = k
+    for m in cv2.split(mfull):
+        mt = np.zeros(m.shape)
+        for i,row in enumerate(m):
+            mt[i] = conv1D(row,kx)
+        for i,col in enumerate(np.transpose(mt)):
+            mt[:,i] = conv1D(col,ky)
+        res.append(mt)
+    return cv2.merge(res)
+\end{lstlisting}
+
+\subsubsection{Comparativa de métodos}
+
+Si recordamos, en ejercicio anteriores utilizamos otro método para calcular la aplicación de una convolución separable $applySepConv$ que utilizaba una acercamiento distinto, ese método era más intensivo en memoria pero tenía dos ventajas, la primera era que utilizaba menos controladores de flujo de Python que al ser interpretado suponen un sobrecoste computacional enorme; y en segundo lugar, aprovecha las operaciones matriciales de Numpy que están implementadas a su vez en Eigen(C++). Ambos métodos aplican las componentes de la máscara primero en un eje y luego en el otro, pero con acercamientos distintos al problema.
+
+Si medimos el tiempo de ejecución de los tres métodos ---incluido $cv2.sepFilter2D$--- obtenemos los siguientes resultados
+
+\begin{lstlisting}
+appliSepConv took 3166.476 ms
+conv2D took 17792.407 ms
+OpenCV took 45.389 ms
+\end{lstlisting}
+
+Vemos así como $applySepConv$ es casi 6 veces más rápido que $conv2D$, lo cual no es sorpresa si tenemos en cuenta que reservar memoria y copiar una matriz son dos operaciones que están implementadas en lenguajes compilados y su ejecución es más rápida que el control de flujo de Python, que al ser interpretado adolece de un sobrecoste en la ejecución y la imposibilidad de realizar optimizaciones como predicción de saltos o desenrollado. Sin embargo, el método de OpenCV es 70 veces más rápido que $applySepConv$ y  400 veces más rápido que $conv2D$, esencialmente por dos motivos, está implementado íntegramente en C++, y está optimizado para el cálculo eficaz. Sin embargo sigue siendo interesante conocer el funcionamiento íntimo de estos métodos.
+
+\subsection{Contruir una pirámide Gaussiana de al menos 5 niveles con las imágenes híbridas calculadas en el apartado anterior.}
+
+\subsubsection{Gaussian Pyramid}
+
+Esta implementación dista poco de la pirámide gaussiana que ya implementamos, la diferencia radica en la no utilización de $cv2.pyrDown$. En primer lugar tenemos que definir un $sigma$ para la máscara gaussiana, en este caso, $sigma=1.1$ es un valor que aproxima la convolución que utilizaba OpenCV y que ya tuvimos ocasión de ver. A partir de ahí:
+
+\begin{enumerate}
+\item Obtenemos la máscara
+\item Creamos una matriz vacía para alojar el resultado de 1 o 3 canales dependiendo del tipo de imagen
+\item Por cada nivel de la pirámide:
+	\begin{enumerate}
+		\item Copiamos la imagen a la matriz destino
+		\item Aplicamos la máscara gaussiana a la imagen
+		\item Tomamos las posiciones impares de la imagen suavizada
+	\end{enumerate}
+\end{enumerate}
+
+Por simpleza del código, aquí y en las pirámides anteriores calculamos una última reducción que no añadimos al resultado, sin embargo el impacto computacional es mínimo y el código resulta mucho más legible.
+
+\begin{lstlisting}
+def customGaussianPyramid(img,n,borderType=BORDER_MIRROR,borderConstant=0.):
+    beg = 0
+    k = gaussianMaskV(1.1)
+    kx,ky=k,k
+
+    is3C = len(img.shape) == 3
+    assert (not is3C or img.shape[2] == 3)
+
+    if is3C:
+        M = np.zeros((halfProgression(img.shape[0], n), img.shape[1],3))
+    else:
+        M = np.zeros((halfProgression(img.shape[0],n),img.shape[1]))
+
+    for i in range(n):
+        M[beg:beg+img.shape[0],:img.shape[1]] = img
+        beg += img.shape[0]
+        if i != n-1:
+            img = applySepConv(img,(kx,ky),borderType,borderConstant)
+            img = img[::2,::2]
+    return M
+\end{lstlisting}
+
+Para no llenar la memoria con las mismas imágenes y dado que el resultado en blanco y negro es el mismo ya visto, esperaremos al siguiente apartado para ver y analizar el resultado de la pirámide gaussiana de las imágenes híbridas.
+
+\subsection{Realizar todas las parejas de imágenes híbridas en su formato a color}
+
+\subsubsection{Obtener frecuencias}
+
+Vamos a implementar nuestros propios métodos para obtener las imágenes de baja y alta frecuencia basándonos principalmente en métodos ya vistos. Utilizamos las mismas constantes que OpenCV para definir el tipo de marco pues permite la intercambiabilidad de funciones como así haremos sin tener que reformular el código
+
+\begin{lstlisting}
+def cLowFreq(img,ksize,s):
+    k = gaussianMaskV(s,2)
+    return applySepConv(img,(k,k),cv2.BORDER_DEFAULT)
+\end{lstlisting}
+
+\begin{lstlisting}
+def cHighFreq(img,sigma):
+    k = gaussianMaskV(sigma,2)
+    img2 = applySepConv(img,(k,k),cv2.BORDER_DEFAULT)
+    img = img - img2
+    return img
+\end{lstlisting}
+
+\subsubsection{Imágenes híbridas a color}
+
+Aunque se podría plantear la opción de aplicar un $sigma$ distinto a cada canal de la imágen el resultado experimental es no sólo que un mismo valor de $sigma$ es suficiente para los tres canales, sino que además, el mismo valor que utilizábamos para las imágenes en blanco y negro es adecuado para las imágenes a color.
+
+\img{eximg/ej11_1}{0.8}
+\\
+
+\img{eximg/ej11_2}{0.8}
+\\
+
+\img{eximg/ej11_3}{0.8}
+\\
+
+\img{eximg/ej11_4}{0.8}
+\\
+
+\img{eximg/ej11_5}{0.8}
+
+Como ya adelantábamos en la versión a blanco y negro, el uso de la pirámide gaussiana nos permite ---gracias a su sigma pequeño--- ir eliminando poco a poco las frecuencias altas y emular el efecto que produce alejarse de la imagen. El efecto acumulado de suavizados sucesivos con un sigma pequeño es equivalente a la aplicación de un suavizado mayor.
+
+\img{eximg/ej11_gauss}{1.2}
+
+Intuitivamente esto se debe a que el valor de cada pixel se va repartiendo progresivamente y cada vez con más alcance por los píxeles vecinos, que es equivalente al uso de un $sigma$ mayor. Por esto, en el momento en que el sigma equivalente sea superior al umbral de frecuencias altas que utilizamos para la imagen superpuesta esta información desaparecerá y sólo quedará la de bajas frecuencias. Además, al ir reduciendo el tamaño de la imagen en la pirámide gaussiana, emulamos el efecto de separarnos de la imagen, donde vamos quedándonos con las bajas frecuencias y llegados a un punto deja de apreciarse que la imagen está suavizada.
+
+\section{Extra}
+
+\subsection{Cálculo manual de PyrUp y PyrDown}
+%problema sigma y ksize
+Por equivocación implementé mis propios métodos de PyrUp y PyrDown y tuve la oportunidad de descubrir una cosa. En primer lugar describimos sucintamente el funcionamiento de ambas funciones, extraido de la documentación de OpenCV\footnote{https://docs.opencv.org/3.4.3}.
+
+\subsubsection{PyrDown}
+
+Como ya vimos en nuestra implementación de la pirámide gaussiana, aplica la matriz 
+
+\[M=\frac{1}{256} \begin{bmatrix} 1 & 4 & 6 & 4 & 1 \\ 4 & 16 & 24 & 16 & 4 \\ 6 & 24 & 36 & 24 & 6 \\ 4 & 16 & 24 & 16 & 4 \\ 1 & 4 & 6 & 4 & 1 \end{bmatrix}, V=\frac{1}{16} \begin{bmatrix} 1 \\ 4 \\ 6 \\ 4 \\ 1 \end{bmatrix}\]
+
+Que se aproxima relativamente bien con $sigma=1.08$:
+
+\[V=\frac{1}{16} \begin{bmatrix} 1.0817 \\ 3.9139 \\ 6.0087 \\ 3.9139 \\ 1.0817 \end{bmatrix}\]
+
+Tras aplicar la máscara toma las filas y columnas impares obteniendo así una imagen de tamaño $(tam/2+tam\%2)$ para cada eje.
+
+\begin{lstlisting}
+def cpyrDown(imgFull,borderType=cv2.BORDER_DEFAULT,borderConstant=0.):
+    res = []
+    for img in cv2.split(imgFull):
+        k = getPyrGaussianKenel()
+        img = applySepConv(img,(k,k),borderType,borderConstant)
+        img = img[::2,::2]
+        res.append(img)
+
+    return cv2.merge(res)
+\end{lstlisting}
+
+Tanto en la porción anterior de código como en la siguiente he eliminado algunas líneas que realizan aserciones y otras tareas no relevantes para la discusión.
+
+\subsubsection{PyrUp}
+
+En este caso, para hacer el escalado hacia arriba se crea una matriz vacía de tamaño dstsize que puede ser, bien 2 veces el tamaño original, o 2 veces menos 1 para crear las imágenes que originalmente eran impares, desde el punto de la implementación esto es fácil porque las columnas y filas pares antes de hacer el suavizado están a 0. Se rellena la matriz que acabamos de crear con los valores a sobreescalar de la siguiente forma
+
+\[ \begin{bmatrix}
+	C & 0 & C & 0 \\
+	0 & 0 & 0 & 0 \\
+	C & 0 & C & 0 \\
+	0 & 0 & 0 & 0
+\end{bmatrix}\]
+
+Como se puede intuir, la imagen tiene un cuarto de la luminosidad de la luminosidad original, para solucionarlo, multiplicamos la matriz de suavizado por 4, o lo que es lo mismo, su vector separable por 2.
+
+\begin{lstlisting}
+def cpyrUp(imgFull,dstsize=None, borderType=cv2.BORDER_DEFAULT, borderConstant=0.):
+    res = []
+    for img in cv2.split(imgFull):
+        dst = np.zeros(dstsize)
+        dst[::2,::2] = img
+        k = 2*getPyrGaussianKenel()
+        dst = applySepConv(dst, (k, k), borderType, borderConstant)
+
+        res.append(dst)
+    return cv2.merge(res)
+\end{lstlisting}
+
+\subsubsection{Problema}
+
+El problema radica en que he observado experimentalmente que con independencia del valor de $sigma$, el reescalado produce un artificio en la imagen en forma de rejilla negra suavizada. A continuación primero la imagen con la gaussiana obtenida con la fórmula de aproximación ($cv2.getGaussianKernel(ksize,simga)$ o $gaussianMaskv(sigma,2)$) y en segundo lugar la imagen suavizada con el kernel antes descrito. Sospecho que el kernel que se consiga a partir de cualquier valor de sigma que minimice la diferencia entre ambas máscaras es más afilado en su cima. A continuación la aproximación ---Custom---, la predefinida en OpenCV ---Rigid--- y la diferencia ---en esta última los valores negativos son negros, los positivos blancos y el 0 gris---.
+
+\img{eximg/extra_soft}{0.6}
+
+\img{eximg/extra_g1}{0.6}
+\\
+
+\img{eximg/extra_g2}{0.6}
+
+Este fenómeno, como ya comenté en el apartado de la pirámide laplaciana no supone un problema para ésta ---que era lo que estaba intentando implementar en primer lugar y lo que dio fruto al error del que se derivó este hallazgo---, pues la diferencia se almacena, incluida la diferencia respecto a la aberración de rejilla que se produce, sin embargo, para su uso en otros ámbitos sí puede resultar conflictivo, aunque hay mejores algoritmos de interpolación para el reescalado de imágenes y no conozco otra aplicación realista de $pyrUp$. Sea como sea, es una curiosidad que entiendo merecía la pena comentar.
+
+
+\end{document}

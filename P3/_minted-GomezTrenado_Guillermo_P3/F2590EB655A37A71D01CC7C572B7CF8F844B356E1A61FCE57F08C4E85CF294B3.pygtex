@@ -1,0 +1,28 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{slidingWindow}\PYG{p}{(}\PYG{n}{img}\PYG{p}{,}\PYG{n}{ratio}\PYG{p}{,}\PYG{n}{levels}\PYG{p}{,}\PYG{n}{xoffr}\PYG{p}{,}\PYG{n}{yoffr}\PYG{p}{):}
+  \PYG{n}{l} \PYG{o}{=} \PYG{l+m+mi}{0}
+  \PYG{n}{h} \PYG{o}{=} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{/}\PYG{l+m+mi}{6}\PYG{p}{)}
+  \PYG{n}{w} \PYG{o}{=} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{h}\PYG{o}{*}\PYG{n}{ratio}\PYG{p}{)}
+  \PYG{n}{y} \PYG{o}{=} \PYG{l+m+mi}{0}
+  \PYG{n}{x} \PYG{o}{=} \PYG{l+m+mi}{0}
+  \PYG{c+c1}{\PYGZsh{} Por cada nivel de la pirámide}
+  \PYG{k}{while} \PYG{n}{l} \PYG{o}{\PYGZlt{}} \PYG{n}{levels}\PYG{p}{:}
+      \PYG{c+c1}{\PYGZsh{} Desplazamiento vertical}
+      \PYG{k}{while} \PYG{n}{y} \PYG{o}{+} \PYG{n}{h} \PYG{o}{\PYGZhy{}} \PYG{n}{yoffr} \PYG{o}{*} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{\PYGZlt{}} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]:}
+          \PYG{c+c1}{\PYGZsh{} Desplazamiento horizontal}
+          \PYG{k}{while} \PYG{n}{x} \PYG{o}{+} \PYG{n}{w} \PYG{o}{\PYGZhy{}} \PYG{n}{xoffr} \PYG{o}{*} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZlt{}} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]:}
+              \PYG{c+c1}{\PYGZsh{} Devolvemos (imagen, coordenadas)}
+              \PYG{k}{yield} \PYG{n}{img}\PYG{p}{[}\PYG{n}{y}\PYG{p}{:}\PYG{n}{y}\PYG{o}{+}\PYG{n}{h}\PYG{p}{,} \PYG{n}{x}\PYG{p}{:}\PYG{n}{x}\PYG{o}{+}\PYG{n}{w}\PYG{p}{,} \PYG{o}{...}\PYG{p}{],(}
+                   \PYG{n}{y}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{),}
+                   \PYG{n}{y}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{)}\PYG{o}{+}\PYG{n}{h}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{),}
+                   \PYG{n}{x}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{),}
+                   \PYG{n}{x}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{)}\PYG{o}{+}\PYG{n}{w}\PYG{o}{*}\PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{**}\PYG{n}{l}\PYG{p}{))}
+              \PYG{n}{x} \PYG{o}{+=} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{xoffr} \PYG{o}{*} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{])}
+          \PYG{n}{x} \PYG{o}{=} \PYG{l+m+mi}{0}
+          \PYG{n}{y} \PYG{o}{+=} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{yoffr} \PYG{o}{*} \PYG{n}{img}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{])}
+      \PYG{n}{y} \PYG{o}{=} \PYG{l+m+mi}{0}
+      \PYG{n}{img} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{pyrDown}\PYG{p}{(}\PYG{n}{img}\PYG{p}{)}
+      \PYG{n}{l} \PYG{o}{+=} \PYG{l+m+mi}{1}
+  \PYG{c+c1}{\PYGZsh{} Fin del generador}
+  \PYG{k}{return}
+\end{Verbatim}

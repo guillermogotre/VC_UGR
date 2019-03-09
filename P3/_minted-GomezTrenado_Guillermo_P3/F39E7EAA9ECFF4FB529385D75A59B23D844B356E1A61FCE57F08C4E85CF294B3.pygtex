@@ -1,0 +1,30 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{ej1}\PYG{p}{():}
+  \PYG{n}{imlist} \PYG{o}{=} \PYG{p}{[}
+      \PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}imagenes/205.png\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}imagenes/208.png\PYGZdq{}}\PYG{p}{,[(}\PYG{l+m+mi}{346}\PYG{p}{,} \PYG{l+m+mi}{365}\PYG{p}{),} \PYG{o}{...}\PYG{p}{]],}
+      \PYG{o}{...}
+  \PYG{p}{]}
+  \PYG{k}{for} \PYG{n}{im1p}\PYG{p}{,}\PYG{n}{im2p}\PYG{p}{,}\PYG{n}{pts} \PYG{o+ow}{in} \PYG{n}{imlist}\PYG{p}{:}
+      \PYG{c+c1}{\PYGZsh{} Leemos la imágenes}
+      \PYG{n}{im1} \PYG{o}{=} \PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{im1p}\PYG{p}{,} \PYG{n+nb+bp}{False}\PYG{p}{)}
+      \PYG{n}{im2} \PYG{o}{=} \PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{im2p}\PYG{p}{,} \PYG{n+nb+bp}{False}\PYG{p}{)}
+
+      \PYG{c+c1}{\PYGZsh{} Definimos la máscara}
+      \PYG{c+c1}{\PYGZsh{}pts = extractRegion(im1)}
+      \PYG{n}{msk} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{im1}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],}\PYG{n}{im1}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]),}\PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{uint8}\PYG{p}{)}
+      \PYG{n}{msk} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{fillConvexPoly}\PYG{p}{(}\PYG{n}{msk}\PYG{p}{,}\PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{e}\PYG{p}{)} \PYG{k}{for} \PYG{n}{e} \PYG{o+ow}{in} \PYG{n}{pts}\PYG{p}{]),}\PYG{l+m+mi}{1}\PYG{p}{)}
+
+      \PYG{c+c1}{\PYGZsh{} Obtenemos los descriptores ds1 y ds2}
+      \PYG{n}{kp1}\PYG{p}{,}\PYG{n}{ds1} \PYG{o}{=} \PYG{n}{getSIFT}\PYG{p}{(}\PYG{n}{im1}\PYG{p}{,}\PYG{n}{msk}\PYG{o}{=}\PYG{n}{msk}\PYG{p}{)}
+      \PYG{n}{kp2}\PYG{p}{,}\PYG{n}{ds2} \PYG{o}{=} \PYG{n}{getSIFT}\PYG{p}{(}\PYG{n}{im2}\PYG{p}{)}
+      \PYG{c+c1}{\PYGZsh{} Pintamos la primera imagen}
+      \PYG{o}{...}
+
+      \PYG{c+c1}{\PYGZsh{} Filtro de Lowe}
+      \PYG{n}{bf\PYGZus{}2nn} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{BFMatcher}\PYG{o}{.}\PYG{n}{create}\PYG{p}{(}\PYG{n}{crossCheck}\PYG{o}{=}\PYG{n+nb+bp}{False}\PYG{p}{)}
+      \PYG{n}{matches} \PYG{o}{=} \PYG{n}{bf\PYGZus{}2nn}\PYG{o}{.}\PYG{n}{knnMatch}\PYG{p}{(}\PYG{n}{ds1}\PYG{p}{,}\PYG{n}{ds2}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{)}
+      \PYG{n}{lowes} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n+nb}{map}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],(}\PYG{n+nb}{filter}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{.}\PYG{n}{distance} \PYG{o}{\PYGZlt{}} \PYG{l+m+mf}{0.7}\PYG{o}{*}  \PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{.}\PYG{n}{distance}\PYG{p}{,}\PYG{n}{matches}\PYG{p}{))))}
+
+      \PYG{c+c1}{\PYGZsh{} Pintamos las correspondencias}
+      \PYG{o}{...}
+\end{Verbatim}

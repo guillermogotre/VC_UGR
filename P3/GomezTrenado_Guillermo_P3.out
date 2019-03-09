@@ -1,0 +1,15 @@
+\BOOKMARK [1][-]{section.1}{Emparejamiento de descriptores. Uso de caracter\355sticas SIFT}{}% 1
+\BOOKMARK [1][-]{section.2}{Recuperaci\363n de im\341genes. Bolsas de palabras}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Implementar un modelo de \355ndice invertido}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Comprobar en im\341genes de la misma escena}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Im\341genes pregunta}{section.2}% 5
+\BOOKMARK [3][-]{subsubsection.2.3.1}{Casos efectivos}{subsection.2.3}% 6
+\BOOKMARK [3][-]{subsubsection.2.3.2}{Casos fallidos}{subsection.2.3}% 7
+\BOOKMARK [2][-]{subsection.2.4}{Conclusiones}{section.2}% 8
+\BOOKMARK [1][-]{section.3}{Visualizaci\363n del vocabulario}{}% 9
+\BOOKMARK [1][-]{section.4}{Bonus 1. Modelo ponderado por tf-idf}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Selecci\363n de im\341genes}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.2}{Ventana deslizante}{section.4}% 12
+\BOOKMARK [1][-]{section.5}{Bonus 2. Creaci\363n de un vocabulario}{}% 13
+\BOOKMARK [2][-]{subsection.5.1}{Obtenci\363n del vocabulario propio}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.2}{Ejecuci\363n con el nuevo vocabulario}{section.5}% 15

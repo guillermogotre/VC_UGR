@@ -1,0 +1,48 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{bonus1}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos el vocabulario}
+  \PYG{n}{vocab}\PYG{p}{,} \PYG{n}{imgl}\PYG{p}{,} \PYG{n}{revidx} \PYG{o}{=} \PYG{n}{buildReverseIndex}\PYG{p}{()}
+  \PYG{n}{wbgs} \PYG{o}{=} \PYG{n}{revidx}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{()}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos la ponderación}
+  \PYG{c+c1}{\PYGZsh{} log N/ni}
+  \PYG{n}{f} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{log}\PYG{p}{(}\PYG{n}{revidx}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{/}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{revidx} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{0}\PYG{p}{,}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{))}
+  \PYG{c+c1}{\PYGZsh{} Misma columna repetida, log N/ni[]}
+  \PYG{n}{fM} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{repeat}\PYG{p}{(}\PYG{n}{f}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{((}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{)),}\PYG{n}{revidx}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} nd[]}
+  \PYG{n}{Nd} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{repeat}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{revidx}\PYG{p}{,}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{((}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{)),}\PYG{n}{revidx}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+  \PYG{c+c1}{\PYGZsh{} t[][]}
+  \PYG{n}{tf} \PYG{o}{=} \PYG{n}{revidx}\PYG{o}{/}\PYG{n}{Nd}\PYG{o}{*}\PYG{n}{fM}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos la imagen y la máscara}
+  \PYG{n}{im1} \PYG{o}{=} \PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{getimgpath}\PYG{p}{(}\PYG{l+m+mi}{406}\PYG{p}{),} \PYG{n+nb+bp}{False}\PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} pts = extractRegion(im1)}
+  \PYG{n}{pts} \PYG{o}{=} \PYG{p}{[(}\PYG{l+m+mi}{371}\PYG{p}{,} \PYG{l+m+mi}{60}\PYG{p}{),} \PYG{p}{(}\PYG{l+m+mi}{574}\PYG{p}{,} \PYG{l+m+mi}{63}\PYG{p}{),} \PYG{p}{(}\PYG{l+m+mi}{578}\PYG{p}{,} \PYG{l+m+mi}{437}\PYG{p}{),} \PYG{p}{(}\PYG{l+m+mi}{385}\PYG{p}{,} \PYG{l+m+mi}{433}\PYG{p}{),} \PYG{p}{(}\PYG{l+m+mi}{384}\PYG{p}{,} \PYG{l+m+mi}{81}\PYG{p}{),} \PYG{p}{(}\PYG{l+m+mi}{371}\PYG{p}{,} \PYG{l+m+mi}{60}\PYG{p}{)]}
+  \PYG{n}{msk} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{im1}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{im1}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]),} \PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{uint8}\PYG{p}{)}
+  \PYG{n}{msk} \PYG{o}{=} \PYG{n}{cv2}\PYG{o}{.}\PYG{n}{fillConvexPoly}\PYG{p}{(}\PYG{n}{msk}\PYG{p}{,} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{e}\PYG{p}{)} \PYG{k}{for} \PYG{n}{e} \PYG{o+ow}{in} \PYG{n}{pts}\PYG{p}{]),} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos el descriptor y lo pintamos}
+  \PYG{n}{kp1}\PYG{p}{,} \PYG{n}{ds1} \PYG{o}{=} \PYG{n}{getSIFT}\PYG{p}{(}\PYG{n}{im1}\PYG{p}{,} \PYG{n}{msk}\PYG{o}{=}\PYG{n}{msk}\PYG{p}{)}
+  \PYG{o}{...}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos la bolsa de palabras ponderadas}
+  \PYG{n}{wbg1} \PYG{o}{=} \PYG{n}{countWords}\PYG{p}{(}\PYG{n}{ds1}\PYG{p}{,} \PYG{n}{vocab}\PYG{p}{)}
+  \PYG{n}{tf1} \PYG{o}{=} \PYG{n}{wbg1}\PYG{o}{/}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{wbg1}\PYG{p}{)}\PYG{o}{*}\PYG{n}{f}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos la cercanía}
+  \PYG{n}{r} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{apply\PYGZus{}along\PYGZus{}axis}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{nscalar}\PYG{p}{(}\PYG{n}{tf1}\PYG{p}{,} \PYG{n}{x}\PYG{p}{),} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{tf}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{())}
+
+  \PYG{c+c1}{\PYGZsh{} Ordenamos por cercanía e imprimimos las 20 más próximas}
+  \PYG{n}{srtd} \PYG{o}{=} \PYG{n+nb}{sorted}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{r}\PYG{p}{,}\PYG{n}{imgl}\PYG{p}{),}\PYG{n}{reverse}\PYG{o}{=}\PYG{n+nb+bp}{True}\PYG{p}{)}
+  \PYG{n}{srtdW} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{srtd}\PYG{p}{]}
+  \PYG{n}{srtdP} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{srtd}\PYG{p}{]}
+  \PYG{n}{pintaMISingleMPL}\PYG{p}{(}
+      \PYG{p}{[}\PYG{n}{leeimagen}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,}\PYG{n}{is\PYGZus{}float}\PYG{o}{=}\PYG{n+nb+bp}{False}\PYG{p}{)} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{srtdP}\PYG{p}{[:}\PYG{l+m+mi}{20}\PYG{p}{]],}
+      \PYG{n}{labels}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}Original\PYGZdq{}}\PYG{p}{]} \PYG{o}{+} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n+nb}{map}\PYG{p}{(}
+          \PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}\PYGZob{}0:.2f\PYGZcb{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{(\PYGZob{}1\PYGZcb{})\PYGZdq{}}\PYG{o}{.}\PYG{n}{format}\PYG{p}{(}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{.}\PYG{n}{split}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}/\PYGZdq{}}\PYG{p}{)[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{.}\PYG{n}{split}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}.\PYGZdq{}}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{]),}
+          \PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{srtdW}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{:}\PYG{l+m+mi}{20}\PYG{p}{],}\PYG{n}{srtdP}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{:}\PYG{l+m+mi}{20}\PYG{p}{]))),}
+      \PYG{n}{cols}\PYG{o}{=}\PYG{l+m+mi}{5}
+      \PYG{p}{)}
+  \PYG{o}{...}
+\end{Verbatim}

@@ -1,0 +1,29 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{ej3}\PYG{p}{(}\PYG{n}{dictpath}\PYG{p}{,}\PYG{n}{descpath}\PYG{p}{):}
+  \PYG{c+c1}{\PYGZsh{} Abrimos los archivos necesarios}
+  \PYG{n}{acc}\PYG{p}{,} \PYG{n}{labels}\PYG{p}{,} \PYG{n}{dictionary} \PYG{o}{=} \PYG{n}{loadDictionary}\PYG{p}{(}\PYG{n}{dictpath}\PYG{p}{)}
+  \PYG{n}{desc}\PYG{p}{,} \PYG{n}{patches} \PYG{o}{=} \PYG{n}{loadAux}\PYG{p}{(}\PYG{n}{descpath}\PYG{p}{,}\PYG{n+nb+bp}{True}\PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} Seleccionamos 10 palabras aleatorias}
+  \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n}{np}\PYG{o}{.}\PYG{n}{random}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{dictionary}\PYG{p}{),}\PYG{l+m+mi}{10}\PYG{p}{):}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos la palabra}
+      \PYG{n}{wrd} \PYG{o}{=} \PYG{n}{dictionary}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}
+      \PYG{c+c1}{\PYGZsh{} Obtenemos la lista de descriptores con los que}
+      \PYG{c+c1}{\PYGZsh{} se ha calculado el centroide / palabra}
+      \PYG{n}{ptchIdx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{(}\PYG{n}{labels} \PYG{o}{==} \PYG{n}{i}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{]}
+      \PYG{n}{dscs} \PYG{o}{=} \PYG{n}{desc}\PYG{p}{[}\PYG{n}{ptchIdx}\PYG{p}{]}
+
+      \PYG{c+c1}{\PYGZsh{} Obtenemos las cercanías}
+      \PYG{n}{dsts} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{apply\PYGZus{}along\PYGZus{}axis}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{nscalar}\PYG{p}{(}\PYG{n}{wrd}\PYG{p}{,}\PYG{n}{x}\PYG{p}{),}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{n}{dscs}\PYG{p}{)}
+
+      \PYG{c+c1}{\PYGZsh{} Ordenamos las cercanías (Cercanías e índices)}
+      \PYG{n}{srtd} \PYG{o}{=} \PYG{n+nb}{sorted}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{dsts}\PYG{p}{,}\PYG{n}{ptchIdx}\PYG{p}{),}\PYG{n}{reverse}\PYG{o}{=}\PYG{n+nb+bp}{True}\PYG{p}{)}
+      \PYG{n}{srtdD} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{srtd}\PYG{p}{]}
+      \PYG{n}{srtdIdx} \PYG{o}{=} \PYG{p}{[}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{srtd}\PYG{p}{]}
+
+      \PYG{c+c1}{\PYGZsh{} Obtenemos los parches asociados}
+      \PYG{n}{ptchs} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}\PYG{n}{patches}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n}{srtdIdx}\PYG{p}{])}
+
+      \PYG{c+c1}{\PYGZsh{} Pintamos los 9 parches más cercanos}
+      \PYG{o}{...}
+\end{Verbatim}

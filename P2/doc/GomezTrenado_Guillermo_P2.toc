@@ -1,0 +1,21 @@
+\babel@toc {spanish}{}
+\contentsline {section}{\numberline {1}Detecci\IeC {\'o}n de puntos SIFT y SURF}{2}{section.1}
+\contentsline {subsection}{\numberline {1.1}Ajuste de par\IeC {\'a}metros}{2}{subsection.1.1}
+\contentsline {subsubsection}{\numberline {1.1.1}SIFT}{2}{subsubsection.1.1.1}
+\contentsline {subsubsection}{\numberline {1.1.2}SURF}{3}{subsubsection.1.1.2}
+\contentsline {subsection}{\numberline {1.2}An\IeC {\'a}lisis de los puntos de inter\IeC {\'e}s}{3}{subsection.1.2}
+\contentsline {subsubsection}{\numberline {1.2.1}SIFT}{4}{subsubsection.1.2.1}
+\contentsline {subsubsection}{\numberline {1.2.2}SURF}{6}{subsubsection.1.2.2}
+\contentsline {subsection}{\numberline {1.3}Obtener los decriptores asociados a los keypoints}{7}{subsection.1.3}
+\contentsline {section}{\numberline {2}Correspondencia entre caracter\IeC {\'\i }sticas}{7}{section.2}
+\contentsline {subsection}{\numberline {2.1}Pintar l\IeC {\'\i }neas y an\IeC {\'a}lisis}{8}{subsection.2.1}
+\contentsline {subsubsection}{\numberline {2.1.1}Bruteforce+crossCheck}{8}{subsubsection.2.1.1}
+\contentsline {subsubsection}{\numberline {2.1.2}Lowe-Average-2NN}{10}{subsubsection.2.1.2}
+\contentsline {subsection}{\numberline {2.2}An\IeC {\'a}lisis comparado}{11}{subsection.2.2}
+\contentsline {section}{\numberline {3}Generar mosaicos}{11}{section.3}
+\contentsline {subsection}{\numberline {3.1}Menos de 5 im\IeC {\'a}genes}{14}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}M\IeC {\'a}s de 5 im\IeC {\'a}genes}{15}{subsection.3.2}
+\contentsline {section}{\numberline {4}Bonus 1. Puntos Adaptative Non-Maximal Suppression}{17}{section.4}
+\contentsline {section}{\numberline {5}Bonus 2. Descriptores Adaptative Non-Maximal Suppression}{23}{section.5}
+\contentsline {section}{\numberline {6}Bonus 3. Estimaci\IeC {\'o}n de la homograf\IeC {\'\i }a mediante RANSAC}{25}{section.6}
+\contentsline {section}{\numberline {7}Bonus. Combinando todo}{29}{section.7}

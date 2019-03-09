@@ -1,0 +1,20 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{ej2}\PYG{p}{():}
+  \PYG{c+c1}{\PYGZsh{} Obtener el índice invertido y la bolsa de palabras}
+  \PYG{o}{...}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos los paths de las 6 imágenes}
+  \PYG{n}{imgs} \PYG{o}{=} \PYG{p}{[}\PYG{n}{getimgpath}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{p}{[}\PYG{l+m+mi}{15}\PYG{p}{,}\PYG{l+m+mi}{16}\PYG{p}{,}\PYG{l+m+mi}{17}\PYG{p}{,}\PYG{l+m+mi}{19}\PYG{p}{,}\PYG{l+m+mi}{20}\PYG{p}{,}\PYG{l+m+mi}{45}\PYG{p}{]]}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos el índice en la matriz de la ruta de la imagen}
+  \PYG{n}{imgsidx} \PYG{o}{=} \PYG{p}{[}\PYG{n}{imgl}\PYG{o}{.}\PYG{n}{index}\PYG{p}{(}\PYG{n}{ip}\PYG{p}{)} \PYG{k}{for} \PYG{n}{ip} \PYG{o+ow}{in} \PYG{n}{imgs}\PYG{p}{]}
+  \PYG{c+c1}{\PYGZsh{} Obtenemos las 6 bolsas de palabras}
+  \PYG{n}{wbgsi} \PYG{o}{=} \PYG{n}{wbgs}\PYG{p}{[}\PYG{n}{imgsidx}\PYG{p}{]}
+
+  \PYG{c+c1}{\PYGZsh{} Definimos la matriz de similitud}
+  \PYG{n}{m} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{l+m+mi}{6}\PYG{p}{,}\PYG{l+m+mi}{6}\PYG{p}{))}
+  \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{6}\PYG{p}{):}
+      \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{6}\PYG{p}{):}
+          \PYG{n}{m}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,}\PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{n}{nscalar}\PYG{p}{(}\PYG{n}{wbgsi}\PYG{p}{[}\PYG{n}{i}\PYG{p}{],}\PYG{n}{wbgsi}\PYG{p}{[}\PYG{n}{j}\PYG{p}{])}
+
+  \PYG{c+c1}{\PYGZsh{} Pintamos la matriz}
+  \PYG{o}{...}
+\end{Verbatim}

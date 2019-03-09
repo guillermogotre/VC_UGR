@@ -1,0 +1,786 @@
+\documentclass{article}
+% pre\'ambulo
+
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,activeacute]{babel}
+\usepackage{mathtools}
+\usepackage[utf8]{inputenc}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
+  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j%
+  \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t%
+  \do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D%
+  \do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N%
+  \do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X%
+  \do\Y\do\Z}
+
+\usepackage{listings}
+%\usepackage{listingsutf8}
+%\usepackage[spanish]{babel}
+\lstset{
+	%inputencoding=utf8/latin1,
+	literate=%
+         {á}{{\'a}}1
+         {í}{{\'i}}1
+         {é}{{\'e}}1
+         {ý}{{\'y}}1
+         {ú}{{\'u}}1
+         {ó}{{\'o}}1
+         {ě}{{\v{e}}}1
+         {š}{{\v{s}}}1
+         {č}{{\v{c}}}1
+         {ř}{{\v{r}}}1
+         {ž}{{\v{z}}}1
+         {ď}{{\v{d}}}1
+         {ť}{{\v{t}}}1
+         {ň}{{\v{n}}}1                
+         {ů}{{\r{u}}}1
+         {Á}{{\'A}}1
+         {Í}{{\'I}}1
+         {É}{{\'E}}1
+         {Ý}{{\'Y}}1
+         {Ú}{{\'U}}1
+         {Ó}{{\'O}}1
+         {Ě}{{\v{E}}}1
+         {Š}{{\v{S}}}1
+         {Č}{{\v{C}}}1
+         {Ř}{{\v{R}}}1
+         {Ž}{{\v{Z}}}1
+         {Ď}{{\v{D}}}1
+         {Ť}{{\v{T}}}1
+         {Ň}{{\v{N}}}1                
+         {Ů}{{\r{U}}}1,
+	language=bash,
+	basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{{$\hookrightarrow$}\space},
+}
+
+\usepackage{graphicx}
+\graphicspath{ {screens/} }
+
+\PassOptionsToPackage{hyphens}{url}\usepackage[hyphens]{url}
+
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{longtable}
+\usepackage[table,xcdraw]{xcolor}
+% macros 
+\newcommand{\img}[2]{
+\noindent\makebox[\textwidth][c]{\includegraphics[width=#2\textwidth,]{imgs/#1}}%
+}
+
+\newcommand{\cfloat}[1]{
+\noindent\makebox[\textwidth][c]{#1}
+}
+
+
+\usepackage{minted}
+
+\long\def\begincode{\begin{minted}[mathescape,linenos,numbersep=5pt,gobble=2,frame=lines,framesep=2mm]{python}
+  def a():
+  	a = 1
+\end{minted}
+}
+
+
+
+
+% title
+\title{Visión por computador\\
+Práctica 3}
+
+\author{Guillermo G\'omez Trenado | 77820354-S \\
+guillermogotre@correo.ugr.es}
+
+\begin{document}
+% cuerpo del documento
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Emparejamiento de descriptores. Uso de características SIFT}
+
+Para este ejercicio he definido una lista de imágenes ---con los puntos del polígono que determinan la máscara--- y utilizando la función \textit{getSift(img,mask)} definidas en la práctica anterior extraemos los descriptores. Para los \textit{matches} he decidido usar el filtro de \textit{Lowe}. En el código original de mi práctica se puede ver el resultado con \textit{Bruteforce + Crosscheck} y con una constante mayor (0.85) en el filtro de \textit{Lowe}. El resultado en ambos casos es la introducción de muchos falsos positivos en el conjunto de parejas que habría que discriminar con técnicas como RANSAC.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def ej1():
+    imlist = [
+        ["imagenes/205.png", "imagenes/208.png",[(346, 365), ...]],
+        ...
+    ]
+    for im1p,im2p,pts in imlist:
+        # Leemos la imágenes
+        im1 = leeimagen(im1p, False)
+        im2 = leeimagen(im2p, False)
+		
+        # Definimos la máscara
+        #pts = extractRegion(im1)
+        msk = np.zeros((im1.shape[0],im1.shape[1]),dtype=np.uint8)
+        msk = cv2.fillConvexPoly(msk,np.array([list(e) for e in pts]),1)
+        
+        # Obtenemos los descriptores ds1 y ds2
+        kp1,ds1 = getSIFT(im1,msk=msk)
+        kp2,ds2 = getSIFT(im2)
+        # Pintamos la primera imagen
+        ...
+
+        # Filtro de Lowe
+        bf_2nn = cv2.BFMatcher.create(crossCheck=False)
+        matches = bf_2nn.knnMatch(ds1,ds2,2)
+        lowes = list(map(lambda x: x[0],(filter(lambda x: x[0].distance < 0.7*  x[1].distance,matches))))
+		
+        # Pintamos las correspondencias
+        ...
+\end{minted}
+
+A continuación podemos ver cuatro ejemplos.
+
+\img{ej1_1}{0.6}
+
+\textit{Parejas de Lowe: 6}
+
+\img{ej1_2}{0.6}
+
+\textit{Parejas de Lowe: 2}
+
+\img{ej1_3}{0.6}
+
+\textit{Parejas de Lowe: 17}
+
+\img{ej1_4}{0.6}
+
+\textit{Parejas de Lowe: 0}
+
+Vemos como el desempeño es bastante bueno, y el filtro de Lowe es capaz de obtener las parejas con un rotundo éxito; sin embargo, en la última imagen, donde el objeto es el mismo, en ángulos parecidos pero en temporadas ---con calidades de vídeo--- distintas, el algoritmo falla, si aplicamos una política menos restrictiva para el emparejamiento obtenemos los siguientes resultados.
+
+\img{ej1_5}{0.8}
+
+En el primer caso he aplicado \textit{Lowe's} relajanto la restricción de no ambigüedad a $0.85$, en el segundo caso aplicamos fuerza bruta con \textit{crosscheck} y en el tercer caso, al resultado anterior le aplicamos la restricción de que la distancia entre dos descriptores tiene que ser menor que 1.15 veces la distancia del mejor. En los tres casos el número de falsos positivos es demasiado alto, y el conflicto aparece cuando no tenemos si quiera suficientes puntos para aplicar RANSAC ---sólo hay parejas correctas de las cuatro necesarias para la primera etapa del algoritmo---. Por lo anterior parece una mejor estrategia sacrificar algunos \textit{matches} entre imágenes distintas y definir las exigencias para los emparejamientos entre descriptores altas a fin de tener un algoritmo más sencillo y robusto.
+
+Como hemos podido comprobar, esta estrategia de recuperación de regiones/objetos de interés puede sernos de utilidad en contextos con condiciones muy controladas ---mismo ángulo e iluminación---, especialmente interesante si se combina con una etapa de verificación espacial, como puede ser la aplicación del algoritmo de RANSAC. Sin embargo, La complejidad algoritmica de este procedimiento y el de bolsas de palabras que veremos a continuación es la misma, entonces habría que comprobar caso por caso qué estrategia es la más conveniente para nuestro problema.
+
+\section{Recuperación de imágenes. Bolsas de palabras}
+
+Para el ejercicio 2 el método se divide en tres partes que veremos en tres apartados distintos
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def ej2():
+    # Obtener el índice invertido y la bolsa de palabras
+    vocab, imgl, revidx = buildReverseIndex()
+    wbgs = revidx.transpose()
+    
+    # Comprobar si es la misma escena
+    ...
+    
+    # Imágenes pregunta
+    ...
+\end{minted}
+
+\subsection{Implementar un modelo de índice invertido}
+
+Como es un proceso costoso, la función \textit{buildReverseIndex} la primera vez que lo calcula lo guarda el resultado en un archivo y las siguientes veces sólo tiene que leer el archivo. El índice inverso es una matriz donde las filas son cada uno de los centroides, y las columnas son cada una de las imágenes.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def buildReverseIndex():
+    CACHE_PATH = 'revidx_cache.npz'
+    # Si no existe ya
+    if not os.path.isfile(CACHE_PATH):
+        # Cargamos el vocabulario
+        _, _, vocab = loadDictionary("kmeanscenters2000.pkl")
+        # Obtenemos la lista de paths de imagenes
+        imgl = [os.path.join('imagenes', x) for x in os.listdir("imagenes")]
+        # Obtenemos los descriptores para cada imagen
+        imgds = [np.array(getSIFT(leeimagen(x, is_float=False))[1]) for x in imgl]
+        # Construimos el índice
+        revidx = np.array([countWords(ds, vocab) for ds in imgds]).transpose()
+        # Guardamos el índice
+        with open(CACHE_PATH, 'w+b') as outcache:
+            np.savez(outcache, vocab=vocab, imgl=imgl, revidx=revidx)
+    # Si ya existe lo recuperamos
+    else:
+        with open(CACHE_PATH, 'r+b') as incache:
+            npzfile = np.load(incache)
+            vocab = npzfile['vocab']
+            imgl = list(npzfile['imgl'])
+            revidx = npzfile['revidx']
+    return vocab, imgl, revidx
+\end{minted}
+
+La función \textit{countWords} devuelve la bolsa de palabras para una lista de descriptores. Tenemos que normalizar los valores, SIFT ya devuelve el descriptor normalizado, pero OpenCV al reescalarlo entre 0 y 255 para que quepa en \textit{unit8} hace que pierda precisión y ya no defina un vector de módulo 1.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def countWords(ds,vocab):
+    if ds is None or len(ds) == 0:
+        return np.zeros(vocab.shape[0])    
+    
+    # Normalizamos
+    dsn = ds / np.repeat(np.sqrt(np.sum(ds*ds,axis=1)).reshape((-1,1)),128,axis=1)
+    
+    # Calculamos producto
+    p = dsn.dot(vocab.transpose())
+    
+    # Obtenemos las clases y un contador
+    cls = [np.where(r == mx)[0][0] for r,mx in zip(p,np.max(p,axis=1))]
+    cls = Counter(cls)
+
+    # Índice de las clases
+    idxs = [k for k in cls]
+    # Frecuencia
+    vals = [cls[k] for k in idxs]
+
+    # Rellenamos la bolsa de palabras con los ceros
+    cntr = np.zeros(vocab.shape[0])
+    cntr[idxs] = vals
+
+    return cntr
+\end{minted}
+
+
+Tanto el índice inverso como la bolsa de palabras son densas ---conserva todos los ceros---, es posible implementarlo así porque tanto el número de imágenes como el número de palabras es reducido, si fuera mayor tendríamos que obtener un modelo reducido de la matriz dispersa. Para ellos utilizamos el método \textit{reduceSparse} donde obtendríamos el índice inverso o la bolsa de palabras llamándolo con \textit{revidx} o \textit{revidx.transpose()} respectivamente. El índice de la lista corresponde con el índice de la palabra o de la imagen según el caso.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def reduceSparse(m):
+    return [dict(zip(list(np.where([row != 0])[1]),row[row != 0])) for row in m]
+\end{minted}
+
+\subsection{Comprobar en imágenes de la misma escena}
+
+Para esta parte he seleccionado 6 imágenes, las cinco primeras pertenecen a la misma escena y la última a una escena distinta. Para calcular la distancia entre dos bolsas de palabras utilizo \textit{nscalar(v1,v2)} donde implemento la fórmula
+
+\[ sim(v_1,v_2) = \frac{\sum_{i=1}^V v_1(i)*v_2(i)}{\sqrt{\sum_{i=1}^Vv_1(i)^2}*\sqrt{\sum_{i=1}^Vv_2(i)^2}}\]
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def nscalar(v1,v2):
+    return v1.transpose().dot(v2)/(cv2.norm(v1)*cv2.norm(v2))
+\end{minted}
+
+La función \textit{getimgpath} obtiene la ruta completa según el nombre de la imagen. Vamos a calcular la matriz de similitudes entre las seis imágenes.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def ej2():
+    # Obtener el índice invertido y la bolsa de palabras
+    ...
+    # Obtenemos los paths de las 6 imágenes
+    imgs = [getimgpath(x) for x in [15,16,17,19,20,45]]
+    # Obtenemos el índice en la matriz de la ruta de la imagen
+    imgsidx = [imgl.index(ip) for ip in imgs]
+    # Obtenemos las 6 bolsas de palabras
+    wbgsi = wbgs[imgsidx]
+    
+    # Definimos la matriz de similitud
+    m = np.zeros((6,6))
+    for i in range(6):
+        for j in range(6):
+            m[i,j] = nscalar(wbgsi[i],wbgsi[j])
+    
+    # Pintamos la matriz
+    ...
+\end{minted}
+
+\img{ej2_1}{0.5}
+
+Se aprecia cláramente cómo la similitud entre las 5 primeras ---misma escena--- es mucho mayor que respecto a la última ---distinta escena---, donde los valores son más bajos. En la diagonal ---en blanco--- está la máxima similitud, de una imagen consigo misma; la última fila y columna, casi en negro, la similitud de la última imagen respecto al resto; y en el resto de la matriz la similitud entre imágenes que pertenecen a la misma escena.
+
+\subsection{Imágenes pregunta}
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def ej2():
+    # Obtener el índice invertido y la bolsa de palabras
+    ...
+    # Comprobar si es la misma escena
+    ...
+    # Comprobar modelo
+    
+    # Definimos las cuatro imágenes pregunta
+    imgs = [getimgpath(x) for x in [15,339,215,227]]
+    # Por cada imagen
+    for imp in imgs:
+        # Obtenemos el índice en la matriz
+        im1idx = imgl.index(imp)
+        # Obtenemos la bolsa de palabras
+        v1 = wbgs[im1idx]
+		
+        # Obtenemos la similitud respecto a todas las demás
+        r = np.apply_along_axis(lambda x: nscalar(v1,x),1,wbgs)
+        # Ordenamos por similitud y nos quedamos las seis mejores
+        bsts = sorted(zip(r,np.arange(0,r.size)),reverse=True)[:6]
+        # Mejores índices
+        bstIdx = [x[1] for x in bsts]
+        # Mejores descriptores
+        bstDs = [x[0] for x in bsts]
+        # Mejores rutas para imprimirlas
+        bstPaths = [imgl[i] for i in [x[1] for x in bsts]]
+        # Pintamos las 6 mejores
+        ...
+\end{minted}
+
+\subsubsection{Casos efectivos}
+
+\img{ej2_2}{0.5}
+
+\img{ej2_3}{0.5}
+
+En los dos casos anteirores el algoritmo ha sido capaz de recuperar cinco imágenes de la misma escena que la imagen de referencia.
+
+\subsubsection{Casos fallidos}
+
+\img{ej2_4}{0.5}
+
+\img{ej2_5}{0.5}
+
+En este caso sin embargo, para la imagen 215 es capaz de recuperar otras dos imágenes que pertenecen a la misma escena, pero la imagen 227 queda aislada ---ni es recuperada por la primera ni recupera las primeras---. Aunque para nosotos sea evidente que pertenecen a la misma escena, si nos fijamos, el pequeño cambio en la posición de la cámara hace que la bolsa de palabras sea demasiado distintas.
+
+\subsection{Conclusiones}
+
+Este algoritmo ha demostrado ser de utilidad tanto para la recuperación de objetos como para el reconocimiento de escenas siempre que las imágenes sobre las que trabaja conserven unas \textbf{condiciones muy parecidas}. En el ejemplo fallido, aunque para nosotros se nos presenten las dos imaǵenes como idénticas, el desplazamiento del fondo hace que la bolsa de palabras de ambas escenas sea radicalmente distinta, además hay que tener en cuenta el sesgo que introduce el uso del detector SIFT, donde sólo se recogen las características de la imagen que presentan contrastes ---especialmente esquinas--- y no se conserva la \textbf{relación espacial} entre ellas, característica imprescindible en el proceso humano de reconocimiento de objetos. 
+
+Además, se nos presentan dos problemas relacionados con la metrica de similitud, el primer problema es que no tenemos forma de \textbf{discriminar cómo de bueno es un valor}, si nos fijamos en el primer ejemplo (15.png) las tres últimas imágenes tienen un valor de distancia menor que las tres primeras del ejemplo fallido, cuando las primeras sí pertenecen a la misma escena y las últimas no; esto hace muy difícil determinar un umbral de calidad entre las similitudes, debido a que obedece estrictamente a la morfología concreta de la imagen y no podemos extraer conclusiones universales. En segundo lugar, derivado de lo anterior no tenemos forma de \textbf{determinar si hay alguna imágen que pertenezca al mismo conjunto} ---¿cómo definimos ese conjunto?--- que la imagen de referencia. Todo lo anterior es en gran parte debido al hecho de que todas las palabras tienen el mismo valor en vocabulario. Luego, en el bonus 1, tendremos ocasión de comprobar el impacto de aplicar un \textbf{peso distinto a cada palabra} en base a su distribución en el conjunto de imágenes.
+
+\section{Visualización del vocabulario}
+
+Para este ejericio he elegido 10 palabras aleatorias, seleccionamos los parches y descriptores que pertencen al clúster con el que se ha definido el centroide mediente \textit{kmeans} y visualizamos los 9 más cercanos ---Imprimo nueve y no diez porque la gráfica aprovecha mejor el espacio---.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def ej3(dictpath,descpath):
+    # Abrimos los archivos necesarios
+    acc, labels, dictionary = loadDictionary(dictpath)
+    desc, patches = loadAux(descpath,True)
+    
+    # Seleccionamos 10 palabras aleatorias
+    for i in np.random.randint(0,len(dictionary),10):
+        # Obtenemos la palabra
+        wrd = dictionary[i]
+        # Obtenemos la lista de descriptores con los que
+        # se ha calculado el centroide / palabra
+        ptchIdx = np.where(labels == i)[0]
+        dscs = desc[ptchIdx]
+
+        # Obtenemos las cercanías
+        dsts = np.apply_along_axis(lambda x: nscalar(wrd,x),1,dscs)
+
+        # Ordenamos las cercanías (Cercanías e índices)
+        srtd = sorted(zip(dsts,ptchIdx),reverse=True)
+        srtdD = [x[0] for x in srtd]
+        srtdIdx = [x[1] for x in srtd]
+		
+        # Obtenemos los parches asociados
+        ptchs = np.array([patches[j] for j in srtdIdx])
+		
+        # Pintamos los 9 parches más cercanos
+        ...
+\end{minted}
+
+De los 10 impresos visualizamos los tres más interesantes.
+
+\img{ej3_1}{0.6}
+\\
+
+\img{ej3_3}{0.6}
+
+En estos dos primero vemos un clúster más cohesionado, donde los parches tienen un valor de similitud alto $(\sim 0.93)$, esto implica que la variabilidad dentro del clúster era reducida y el centroide representa bien a los miembros de la clase, sin embargo, en el siguiente, vemos que el valor es $\sim 0.87$ y vemos parches con mucha variabilidad, todos parecen describir con mayor o menor suerte una esquina en la intersección de los márgenes derecho e inferior.
+
+\img{ej3_4}{0.6}
+
+Lo que vemos es consistente con lo que esperaba encontrar debido al funcionamiento de kmeans como algoritmo de clústering, que nos obliga a definir de antemano el número de módulos. Tenemos clases más epecializadas, con una mayor cohesión entre sus miembros; y clases que funcionan a modo de cajón de sastre con mayor dispersión entre los descriptores. Es de esperar que si normalizáramos la luminosidad de los parches veríamos imágenes mucho más parecidas, sin embargo, por el uso del gradiente en SIFT, lo que le interesa no son los valores absolutos de los píxeles sino la diferencia con su vecindad, de ahí la variabilidad en el desplazamiento de luminosidad.
+
+\section{Bonus 1. Modelo ponderado por tf-idf}
+
+Voy a dividir la explicación en dos partes, en la primera obtenemos las veinte imágenes más próximas con la distancia ponderada a la región seleccionada y en la segunda aplicamos la ventana deslizante
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def bonus1():
+    # Obtenemos el vocabulario
+    vocab, imgl, revidx = buildReverseIndex()
+    wbgs = revidx.transpose()
+
+    # Obtenemos la ponderación
+    ...
+    # Seleccionamos y pintamos las 20 imágenes más parecidas
+    ...	
+    # Realizamos la búsqueda con ventana deslizante
+    ...
+\end{minted}
+
+\subsection{Selección de imágenes}
+
+La fórmula para las nuevos pesos, tal como aparece en las diapositivas, es la siguiente
+
+\[t_i = (\frac{n_{id}}{n_d})(\log\frac{N}{n_i})\]
+
+La calculamos en dos partes, la parte de la derecha, que depende sólo de la palabra y no de la bolsa de palabras de una imagen, y la parte de la izquierda que depende de cada imagen.
+
+%Formula ponderación
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def bonus1():
+    # Obtenemos el vocabulario
+    vocab, imgl, revidx = buildReverseIndex()
+    wbgs = revidx.transpose()
+
+    # Obtenemos la ponderación
+    # log N/ni
+    f = np.log(revidx.shape[1]/np.sum(revidx > 0,axis=1)) 
+    # Misma columna repetida, log N/ni[]
+    fM = np.repeat(f.reshape((-1,1)),revidx.shape[1],axis=1) 
+    # nd[]
+    Nd = np.repeat(np.sum(revidx,axis=0).reshape((1,-1)),revidx.shape[0],axis=0)
+    # t[][]
+    tf = revidx/Nd*fM
+    
+    # Obtenemos la imagen y la máscara
+    im1 = leeimagen(getimgpath(406), False)
+
+    # pts = extractRegion(im1)
+    pts = [(371, 60), (574, 63), (578, 437), (385, 433), (384, 81), (371, 60)]
+    msk = np.zeros((im1.shape[0], im1.shape[1]), dtype=np.uint8)
+    msk = cv2.fillConvexPoly(msk, np.array([list(e) for e in pts]), 1)
+
+    # Obtenemos el descriptor y lo pintamos
+    kp1, ds1 = getSIFT(im1, msk=msk)
+    ...
+
+    # Obtenemos la bolsa de palabras ponderadas
+    wbg1 = countWords(ds1, vocab)
+    tf1 = wbg1/np.sum(wbg1)*f
+
+    # Obtenemos la cercanía
+    r = np.apply_along_axis(lambda x: nscalar(tf1, x), 1, tf.transpose())
+
+    # Ordenamos por cercanía e imprimimos las 20 más próximas
+    srtd = sorted(zip(r,imgl),reverse=True)
+    srtdW = [x[0] for x in srtd]
+    srtdP = [x[1] for x in srtd]
+    pintaMISingleMPL(
+        [leeimagen(x,is_float=False) for x in srtdP[:20]],
+        labels=["Original"] + list(map(
+            lambda x: "{0:.2f}\n({1})".format(x[0],x[1].split("/")[1].split(".")[0]),
+            zip(srtdW[1:20],srtdP[1:20]))),
+        cols=5
+        )
+    ...
+\end{minted}
+
+\img{b1_0}{0.8}
+
+He seleccionado la región del frigorífico, suficientemente grande y con suficientes detalles como para arrojar resultados interesantes, y las 20 imágenes más cercanas son las siguientes.
+
+\img{b1_1}{0.8}
+
+Vemos que parte del frigorífico aparece en 12 de las 20 imágenes, y en la quinta aparece otro frigorífico con una decoración muy parecida.
+
+\subsection{Ventana deslizante}
+
+Para el algoritmo de la ventana deslizante he definido un generador que recibe como parámetros, la imagen original, la relación de aspecto de la ventana, el número de niveles para la pirámide gaussiana, y la proporción de offset en \textit{x} e \textit{y} para el desplazamiento, en vez de un valor absoluto se le pasa una fracción que se relaciona con el ancho y alto de la imagen respectivamente, $1/16$ hará 16 desplazamientos. Además de las coordenadas devuelvo la imagen contenida bajo la ventana para visualizarlo en el siguiente paso con mayor comodidad, aunque bastaría con comentar esas líneas para hacer el algoritmo más eficiente. 
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def slidingWindow(img,ratio,levels,xoffr,yoffr):
+    l = 0
+    h = int(img.shape[0]/6)
+    w = int(h*ratio)
+    y = 0
+    x = 0
+    # Por cada nivel de la pirámide
+    while l < levels:
+        # Desplazamiento vertical
+        while y + h - yoffr * img.shape[0] < img.shape[0]:
+            # Desplazamiento horizontal
+            while x + w - xoffr * img.shape[1] < img.shape[1]:
+                # Devolvemos (imagen, coordenadas)
+                yield img[y:y+h, x:x+w, ...],(
+                     y*(2**l),
+                     y*(2**l)+h*(2**l),
+                     x*(2**l),
+                     x*(2**l)+w*(2**l))
+                x += int(xoffr * img.shape[1])
+            x = 0
+            y += int(yoffr * img.shape[0])
+        y = 0
+        img = cv2.pyrDown(img)
+        l += 1
+    # Fin del generador
+    return
+\end{minted}
+
+La parte del código que queda para el bonus es la siguiente. Para aprovechar el espacio de la gráfica imprimimos 24 (8x3) ventanas, en vez de 20.
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def bonus1():
+    ...
+    # Obtenemos la relación de aspecto de la ventana
+    r = np.max(np.array(pts),axis=0) - np.min(np.array(pts),axis=0)
+    r = r[0]/r[1]
+    
+    # Función para calcular la distancia entre dos imágenes
+    def getDist(im,msk):
+        kp2,ds2 = getSIFT(im, msk=msk)
+        wbg2 = countWords(ds2, vocab)
+        tf2 = wbg2 / np.sum(wbg2) * f
+        d = nscalar(tf1, tf2)
+        return d
+    
+    # Función para obtener las coordenadas en el formato
+    # de OpenCV
+    def transformCoords(coords):
+        return np.array([
+            [coords[2], coords[0]],
+            [coords[2], coords[1]],
+            [coords[3], coords[1]],
+            [coords[3], coords[0]],
+        ])
+	
+    # Lista (distancia,[imagen,coordenadas,path])
+    res = []
+    # Por cada una de las 24 mejores imágenes
+    for impath in srtdP[1:25]:
+        # Cargamos la imagen
+        img = leeimagen(impath,is_float=False)
+        # Obtenemos el generador para la ventana deslizante
+        wg = slidingWindow(img, r, 3, 1 / 6, 1 / 4)
+        # Por cada ventana
+        for imw,coords in wg:
+            # Definimos la máscara
+            msk = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+            msk = cv2.fillConvexPoly(msk, transformCoords(coords), 1)*255
+            # Obtenemos la cercanía
+            d = getDist(img,msk)
+            # Si no ha habido ningún descriptor saltamos
+            if np.isnan(d):
+                continue
+            # Añadimos a la lista
+            res.append((d,[imw,coords,impath]))
+    
+    # Ordenamos por cercanía
+    sortedRes = sorted(res, key=lambda x: x[0], reverse=True)
+    
+    # Imprimimos las 24 mejores    
+    ...
+\end{minted}
+
+El resultado sobre las 24 mejores imágenes ---sin incluir de la que extraímos la región--- es el siguiente
+
+\img{b1_2}{0.8}
+
+15 de las 24 regiones incluyen al frigorífico. Las 9 que no la incluyen son regiones donde aparece un mueble de madera, probablemente debido al trozo de mesa y silla ---mismo patrón vertical--- que aparece en la región escogida. Hemos aplicado la ventana deslizante sobre tres niveles de la pirámide gaussiana y el impacto del tamaño de la venta que se observa es que mientras mayor sea la ventana, el número de características que extrae que no corresponden a la región de mayor densidad de descriptores ---decoración en la parte superior del frigorífico--- penaliza el peso de las palabras comunes, así vemos como la ventana (1,4) tiene una cercanía de 0.238 mayor que la de la región (2,3), sólo 0.222, cuando ambas pertenecen a la misma imagen y la segunda tiene un mayor área común con la región seleccionada que la primera, pero ese área es pobre en descriptores. 
+
+Por lo anterior vemos que el uso de pesos en las palabras parece discriminar correctamente entre las palabras que discriminan correctamente y aquellas que definen características genéricas que aparecen en todas las imágenes, pues todas las ventanas seleccionadas contienen elementos de la región de referencia, sin embargo parece que la ventana de mayor activación no tiene por qué corresponder con la región que mejor refleje el área originalmente seleccionada; parece que una mejor estrategia podría consistir en utilizar un mapa de calor donde se superpongan las ventanas analizadas ponderadas por su valor de cercanía, y utilizar ésto para determinar si existe o no la región u objeto en la imagen candidata, se observaría un área localizada de mayor activación en caso positivo, o una distribución uniforme de baja activación a lo largo de toda la imagen en caso negativo. Y se puede esar este mismo resultado mapa para determinar las coordenadas de la región de interés.
+
+\section{Bonus 2. Creación de un vocabulario}
+
+\subsection{Obtención del vocabulario propio}
+
+Para esta sección he definido dos funciones, una función auxiliar \textit{getPatch} para extraer un parche desde una imagen y las características del \textit{keypoint} asociado a un descriptor; y una función \textit{bonus2} que llevará la lógica de extraer los descriptores, los parches, aplicar kmeans para generar el modelo de vocabulario y guardarlo. En este algoritmo no he limitado el número de descriptores a 600 ---como sí se afirma que se hace en el modelo predefinido que se nos facilita--- porque la configuración de SIFT ---\textit{contrastThreshold}=0.07 y \textit{edgeThreshold}=10--- devuelve por lo general menos de 600 puntos clave, pero de buena calidad, por eso he decidido conservar estos parámetros en vez de bajarlos y quedarme con los 600 de mejor \textit{respuesta} que generarían muchos clústers con centroides poco interesantes respecto a la detección de esquinas. Además, es interesante en este algoritmo utilizar para la creación del vocabulario la misma configuración que para la extracción de descriptores en las imágenes que analizaremos posteriormente, así el tipo de puntos que devolverá el algoritmo tendrán mejor reflejo en el conjunto de palabras visuales del modelo.
+
+Dicho todo lo anterior, vamos a ver la lógica del algoritmo. Para la extracción de parches defino una matriz de transformación que corrige el giro y centra en una ventana cuadrada de 24 píxeles de lado el punto con el diámetro devuelto por el keypoint ---aunque el valor de tamaño del algoritmo SIFT originalmente hace referencia al radio de la región detectada, en la implementación de OpenCV se devuelve el diámetro---. $\alpha$ expresa el ángulo de giro en radianes, $x$ e $y$ las coordenadas del punto y $d$ el diámetro del punto.
+
+\[M = \begin{bmatrix}
+\cos \alpha & -\sin \alpha & \frac{24}{2} \\
+\sin \alpha & \cos \alpha & \frac{24}{2} \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+f & 0 & -xf \\
+0 & f & -yf \\
+0 & 0 & 1
+\end{bmatrix}; \quad f=24/d\]
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def getPatch(im,x,y,d,a,psize=24):
+    # Definimos a en radianes
+    a = a * np.pi / 180
+    # Parte izquierda de la matriz
+    M2 = np.array([
+        [np.cos(a),-np.sin(a),psize/2],
+        [np.sin(a),np.cos(a),psize/2],
+        [0,0,1]
+    ],dtype=np.float) #T·R
+    f = psize / d
+    # Parte derecha de la matriz
+    M1 = np.array([
+        [f, 0, -x * f],
+        [0, f, -y * f],
+        [0,0,1]
+    ],dtype=np.float)
+    # Tomamos las dos primeras filas del producto
+    M = M2.dot(M1)[:2,:]
+    
+    # Obtenemos el parche
+    p = cv2.warpAffine(im,M,(psize,psize))
+    return p
+\end{minted}
+
+Una vez hecho lo anterior, el resto del algoritmo es muy sencillo
+
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm,
+               breaklines]{python}
+  def bonus2():
+    # Matriz de descriptores
+    des = np.zeros((0,128),dtype=np.float32)
+    # Lista de patches
+    pcs = []
+    # Por cada imagen de la carpeta
+    for imp in os.listdir('imagenes'):
+        imp = os.path.join('imagenes',imp)
+        # Cargamos la imagen
+        im = leeimagen(imp)
+        # Obtenemos los keypoints y descriptores
+        kp,ds = getSIFT(im)
+        # Obtenemos los patches desde los keypoints
+        patches = [getPatch(im,k.pt[0],k.pt[1],k.size,k.angle) for k in kp]
+        # Añadimos los descriptores a la matriz
+        des = np.vstack((des,ds))
+        # Añadimos los patches a la lista
+        pcs += patches
+    
+    # Definimos el contenedor de clases
+    bestLabels = np.zeros(des.shape[0])
+    # Obtenemos las clases mediante kmeans
+    retval, bestLabels, centers = cv2.kmeans(
+        des,
+        2000,
+        None,
+        (cv2.TermCriteria_EPS | cv2.TermCriteria_MAX_ITER,30,0.1),
+        5,
+        cv2.KMEANS_PP_CENTERS
+    )
+    
+    # Guardamos los patches y descriptores
+    with open('descriptorsAndpatches2000_custom.pkl','w+b') as outfile:
+        pickle.dump({
+            'descriptors': des,
+            'patches': pcs
+        },outfile)
+    # Guardamos la precisión, las etiquetas y el vocabulario
+    with open('kmeanscenters2000_custom.pkl','w+b') as outfile:
+        pickle.dump({
+            'accuracy': retval,
+            'labels': bestLabels,
+            'dictionary': centers
+        },outfile)
+\end{minted}
+
+Debido al uso de un número menor de características, se observa que la precisión que devuelve \textit{kmeans} en vez de ser de $4.34*10^4$ como en el vocabulario original, es de $8.46*10^9$, que puede significar dos cosas, que los descriptores seleccionados son menores en números y variabilidad, y o bien la calidad de éstos es mayor y definen palabras más descriptivas de la comunidad que engloba; o por el contrario, se están creando comunidades demasiado especializadas que no generalizarían bien con nuevas imágenes. Sin embargo, el número de descriptores utilizados no difieren tanto, para el diccionario original se utilizaron 193041 descriptores, y para el calculado 147299 ($\sim75\%$) frente a una diferencia de cinco órdenes de magnitud en la precisión.
+
+\subsection{Ejecución con el nuevo vocabulario}
+
+Una vez ejecutada esta función obtenemos nuestros propios archivos y sólo tenemos que llamar a la función \textit{ej3} con la nueva ruta. 
+
+\img{b3_1}{0.5}
+\\
+
+\img{b2_2}{0.5}
+\\
+
+\img{b2_3}{0.5}
+
+Lo que observamos como ya adelantábamos es que los parches parecen mucho más uniformes, y el valor de cercanía es mayor respecto al centroide. Podemos evaluar este nuevo vocabulario sobre el ejercicio anterior.
+
+\img{b2_4}{0.6}
+
+\img{b2_5}{0.6}
+
+Vemos resultados en consonancia con los obtenidos con el otro vocabulario. Y si aplicamos éste sobre el ejercicio 2, vemos que sigue encontrando los casos efectivos, pero sigue sin poder encontrar las imágenes que pertenecen a la misma escena de la imagen conflictiva ---sólo muestro éstos últimos---.
+
+\img{b2_6}{0.6}
+
+\img{b2_7}{0.6}
+
+Todo esto me lleva a pensar que no hemos conseguido generar un vocabulario más robusto a pesar de usar descriptores de puntos de mayor calidad ---diferenciación entre bordes y esquinas---, aunque hemos conseguido reducir el conjunto de descriptores al 75\% con la consecuente reducción en tiempo de computación del \textit{kmeans}. Con todo lo anterior vemos que es posible que para el modelo de vocabulario que nos entregaron para la práctica el número de clústers fuera demasiado reducido, de ahí la baja precisión de la modularización, con muchos descriptores pobremente representados por el centroide.
+
+\end{document}

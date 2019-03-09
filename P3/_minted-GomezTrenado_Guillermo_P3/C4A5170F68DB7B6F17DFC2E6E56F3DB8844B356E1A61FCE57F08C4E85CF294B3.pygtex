@@ -1,0 +1,26 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k}{def} \PYG{n+nf}{countWords}\PYG{p}{(}\PYG{n}{ds}\PYG{p}{,}\PYG{n}{vocab}\PYG{p}{):}
+  \PYG{k}{if} \PYG{n}{ds} \PYG{o+ow}{is} \PYG{n+nb+bp}{None} \PYG{o+ow}{or} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{ds}\PYG{p}{)} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{:}
+      \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{vocab}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{])}
+
+  \PYG{c+c1}{\PYGZsh{} Normalizamos}
+  \PYG{n}{dsn} \PYG{o}{=} \PYG{n}{ds} \PYG{o}{/} \PYG{n}{np}\PYG{o}{.}\PYG{n}{repeat}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sqrt}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{ds}\PYG{o}{*}\PYG{n}{ds}\PYG{p}{,}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{))}\PYG{o}{.}\PYG{n}{reshape}\PYG{p}{((}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{)),}\PYG{l+m+mi}{128}\PYG{p}{,}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} Calculamos producto}
+  \PYG{n}{p} \PYG{o}{=} \PYG{n}{dsn}\PYG{o}{.}\PYG{n}{dot}\PYG{p}{(}\PYG{n}{vocab}\PYG{o}{.}\PYG{n}{transpose}\PYG{p}{())}
+
+  \PYG{c+c1}{\PYGZsh{} Obtenemos las clases y un contador}
+  \PYG{n+nb+bp}{cls} \PYG{o}{=} \PYG{p}{[}\PYG{n}{np}\PYG{o}{.}\PYG{n}{where}\PYG{p}{(}\PYG{n}{r} \PYG{o}{==} \PYG{n}{mx}\PYG{p}{)[}\PYG{l+m+mi}{0}\PYG{p}{][}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{k}{for} \PYG{n}{r}\PYG{p}{,}\PYG{n}{mx} \PYG{o+ow}{in} \PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{p}\PYG{p}{,}\PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{p}\PYG{p}{,}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{))]}
+  \PYG{n+nb+bp}{cls} \PYG{o}{=} \PYG{n}{Counter}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{)}
+
+  \PYG{c+c1}{\PYGZsh{} Índice de las clases}
+  \PYG{n}{idxs} \PYG{o}{=} \PYG{p}{[}\PYG{n}{k} \PYG{k}{for} \PYG{n}{k} \PYG{o+ow}{in} \PYG{n+nb+bp}{cls}\PYG{p}{]}
+  \PYG{c+c1}{\PYGZsh{} Frecuencia}
+  \PYG{n}{vals} \PYG{o}{=} \PYG{p}{[}\PYG{n+nb+bp}{cls}\PYG{p}{[}\PYG{n}{k}\PYG{p}{]} \PYG{k}{for} \PYG{n}{k} \PYG{o+ow}{in} \PYG{n}{idxs}\PYG{p}{]}
+
+  \PYG{c+c1}{\PYGZsh{} Rellenamos la bolsa de palabras con los ceros}
+  \PYG{n}{cntr} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{vocab}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{])}
+  \PYG{n}{cntr}\PYG{p}{[}\PYG{n}{idxs}\PYG{p}{]} \PYG{o}{=} \PYG{n}{vals}
+
+  \PYG{k}{return} \PYG{n}{cntr}
+\end{Verbatim}

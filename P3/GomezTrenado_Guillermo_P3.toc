@@ -1,0 +1,16 @@
+\babel@toc {spanish}{}
+\contentsline {section}{\numberline {1}Emparejamiento de descriptores. Uso de caracter\IeC {\'\i }sticas SIFT}{2}{section.1}
+\contentsline {section}{\numberline {2}Recuperaci\IeC {\'o}n de im\IeC {\'a}genes. Bolsas de palabras}{6}{section.2}
+\contentsline {subsection}{\numberline {2.1}Implementar un modelo de \IeC {\'\i }ndice invertido}{6}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Comprobar en im\IeC {\'a}genes de la misma escena}{8}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Im\IeC {\'a}genes pregunta}{9}{subsection.2.3}
+\contentsline {subsubsection}{\numberline {2.3.1}Casos efectivos}{10}{subsubsection.2.3.1}
+\contentsline {subsubsection}{\numberline {2.3.2}Casos fallidos}{10}{subsubsection.2.3.2}
+\contentsline {subsection}{\numberline {2.4}Conclusiones}{11}{subsection.2.4}
+\contentsline {section}{\numberline {3}Visualizaci\IeC {\'o}n del vocabulario}{12}{section.3}
+\contentsline {section}{\numberline {4}Bonus 1. Modelo ponderado por tf-idf}{14}{section.4}
+\contentsline {subsection}{\numberline {4.1}Selecci\IeC {\'o}n de im\IeC {\'a}genes}{15}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Ventana deslizante}{17}{subsection.4.2}
+\contentsline {section}{\numberline {5}Bonus 2. Creaci\IeC {\'o}n de un vocabulario}{20}{section.5}
+\contentsline {subsection}{\numberline {5.1}Obtenci\IeC {\'o}n del vocabulario propio}{20}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Ejecuci\IeC {\'o}n con el nuevo vocabulario}{23}{subsection.5.2}
